@@ -26,6 +26,8 @@
     }
     .playerName {
         font-size: 32px;
+    }
+    .playerContent {
         font-family: Helvetica, sans-serif;
         display: inline-block;
         vertical-align: top;
@@ -47,7 +49,7 @@
     <p/>
     <button id="addComputerPlayer">Add Computer Player</button>
     <p/>
-    <button id="start">Start!</button>
+    <button id="gameplayButton">Start!</button>
 </div>
 
 <div id="players"></div>
@@ -55,8 +57,13 @@
 <div id="playerTemplate" class="player template">
     <div>
         <div class="imageContainer"></div>
-        <div class="playerName"></div>
-        <div class="status"></div>
+        <div class="playerContent">
+            <div class="playerName"></div>
+            <div class="status"></div>
+            <div>
+                <button class="voteButton">Vote</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -92,6 +99,11 @@
             });
             let imageElement = document.getElementById(self.image + "Image");
             playerElement.getElementsByClassName("imageContainer")[0].appendChild(imageElement);
+
+            self.voteButton = playerElement.getElementsByClassName("voteButton")[0];
+            self.voteButton.addEventListener("click", function() {
+
+            });
         };
 
         this.show = function() {
@@ -119,9 +131,12 @@
             self.players[self.players.length] = player;
         };
 
-        this.start = function() {
-            self.imposterPlayer = self.players[Math.floor(Math.random() * self.players.length)];
-            self.imposterPlayer.imposter = true;
+        this.pickImposter = function() {
+            for (let i = 0; i < self.players.length; i++) {
+                self.players[i].imposter = false;
+            }
+            let player = self.players[Math.floor(Math.random() * self.players.length)];
+            player.imposter = true;
         };
     }
 
@@ -132,7 +147,7 @@
     let addHumanPlayerButton = document.getElementById("addHumanPlayer");
     let addComputerPlayerButton = document.getElementById("addComputerPlayer");
     let playerNameField = document.getElementById("playerName");
-    let startButton = document.getElementById("start");
+    let gameplayButton = document.getElementById("gameplayButton");
 
     addHumanPlayerButton.addEventListener("click", function() {
         let player = new Player();
@@ -171,9 +186,9 @@
         game.addPlayer(player);
     });
 
-    startButton.addEventListener("click", function() {
-        game.start();
-        startButton.disabled = true;
+    gameplayButton.addEventListener("click", function() {
+        game.pickImposter();
+        gameplayButton.innerText = "Start!"
     });
 </script>
 <div id="images" style="display: none">
