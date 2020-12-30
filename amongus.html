@@ -12,12 +12,9 @@
     padding: 0;
   }
 
-  .template {
-    display: none !important;
-  }
-
   .imposter {
-    color: red;
+    padding: 0;
+    margin: 0;
   }
 
   .player {
@@ -44,8 +41,17 @@
     vertical-align: top;
   }
 
-  .show {
-    background-color: yellow;
+  .hidden {
+    display: none !important;
+  }
+
+  .imposterHighlight {
+    background-color: red;
+    color: white;
+  }
+
+  .crewmateHighlight {
+    background-color: #e3c569;
     color: black;
   }
 
@@ -62,19 +68,20 @@
   <p/>
   <button id="addComputerPlayer">Add Computer Player</button>
   <p/>
-  <button id="gameplayButton">Start!</button>
+  <button id="startButton">Start!</button>
+  <button disabled="true" id="emergencyMeetingButton">Emergency Meeting!</button>
 </div>
 
 <div id="players"></div>
 
-<div class="template player" id="playerTemplate">
+<div class="hidden player" id="playerTemplate">
   <div>
     <div class="imageContainer"></div>
     <div class="playerContent">
       <div class="playerName"></div>
       <div class="status"></div>
       <div>
-        <button class="voteButton">Vote</button>
+        <button class="hidden voteButton">Vote</button>
       </div>
     </div>
   </div>
@@ -113,6 +120,7 @@
       this.human = true;
       this.showing = false;
       this.image = pluckRandom(availableImages);
+      this.voteCount = 0;
     };
 
     createPlayerImage() {
@@ -125,38 +133,131 @@
 
     createVoteButton() {
       this.voteButton = this.playerElement.getElementsByClassName("voteButton")[0];
-      this.voteButton.addEventListener("click", () => {
-      });
+      this.voteButton.addEventListener("click", () => this.votedAsImposter());
+    }
+
+    createStatusElement() {
+      this.statusElement = this.playerElement.getElementsByClassName("status")[0];
     }
 
     setPlayerElement(playerElement) {
       this.playerElement = playerElement;
       this.playerElement.getElementsByClassName("playerName")[0].innerHTML = this.name;
-
       this.createPlayerImage();
+      this.createStatusElement();
       this.createVoteButton();
     };
+
+    votedAsImposter() {
+      this.voteCount += 1;
+    }
+
+    setStatus(styleClass, text) {
+      this.statusElement.innerHTML = `<span class='${styleClass}'><br/>${text}</span>`;
+    }
+
+    clearStatus() {
+      this.statusElement.innerHTML = "";
+    }
+
+    showImposterStatus() {
+      this.showing = true;
+      if (this.imposter) {
+        this.setStatus("imposter", "is the imposter!");
+        this.playerElement.classList.add("imposterHighlight");
+      } else {
+        this.setStatus("crewmate", "is a crewmate");
+        this.playerElement.classList.add("crewmateHighlight");
+      }
+    }
+
+    hideImposterStatus() {
+      this.clearStatus();
+      this.playerElement.classList.remove("imposterHighlight");
+      this.playerElement.classList.remove("crewmateHighlight");
+      this.showing = false;
+    }
 
     show() {
       if (this.showing) {
         return;
       }
-      this.showing = true;
-      if (this.imposter) {
-        this.playerElement.getElementsByClassName("playerName")[0].innerHTML = this.name + " <span class='imposter'><br/>is the imposter!</span>";
-      }
-      this.playerElement.classList.add("show");
+      this.showImposterStatus();
       setTimeout(() => {
-        this.playerElement.classList.remove("show");
-        this.playerElement.getElementsByClassName("playerName")[0].innerHTML = this.name;
-        this.showing = false;
+        this.hideImposterStatus();
       }, 5000);
     };
+
+    startPlayerVote() {
+      this.showVoteButton();
+    }
+
+    showVoteButton() {
+      this.voteButton.classList.remove("hidden");
+    }
   }
 
   class Game {
     constructor() {
       this.players = [];
+
+      this.playersElement = document.getElementById("players");
+      this.playerTemplate = document.getElementById("playerTemplate");
+      this.addHumanPlayerButton = document.getElementById("addHumanPlayer");
+      this.addComputerPlayerButton = document.getElementById("addComputerPlayer");
+      this.playerNameField = document.getElementById("playerName");
+      this.startButton = document.getElementById("startButton");
+      this.emergencyMeetingButton = document.getElementById("emergencyMeetingButton");
+
+      const newFromTemplate = (template) => {
+        let element = template.cloneNode(true);
+        element.classList.remove("hidden");
+        element.attributes.removeNamedItem("id");
+        return element;
+      };
+
+      const newPlayerElement = () => {
+        return newFromTemplate(this.playerTemplate);
+      };
+
+      const addPlayer = (name, playerCreated) => {
+        let player = new Player();
+        player.name = name;
+        playerCreated(player);
+
+        let playerElement = newPlayerElement();
+        player.setPlayerElement(playerElement);
+        this.playersElement.appendChild(playerElement);
+
+        this.addPlayer(player);
+      };
+
+      this.addHumanPlayerButton.addEventListener("click", () => {
+        addPlayer(this.playerNameField.value, player => {
+          this.playerNameField.value = "";
+        });
+      });
+
+      this.addComputerPlayerButton.addEventListener("click", () => {
+        if (availableComputerPlayers.length === 0) {
+          alert("Sorry, there are no more available players.");
+          return;
+        }
+        addPlayer(pluckRandom(availableComputerPlayers), player => {
+          player.human = false;
+        })
+      });
+
+      this.startButton.addEventListener("click", () => {
+        game.pickImposter();
+        this.startButton.disabled = true;
+        this.emergencyMeetingButton.disabled = false;
+      });
+
+      this.emergencyMeetingButton.addEventListener("click", () =>  {
+        this.emergencyMeetingButton.disabled = true;
+        game.startVoting();
+      });
     }
 
     addPlayer(player) {
@@ -173,60 +274,14 @@
       let player = sample(this.players);
       player.imposter = true;
     };
+
+    startVoting() {
+      this.players.forEach(player => player.showVoteButton());
+    }
   }
 
   let game = new Game();
 
-  let players = document.getElementById("players");
-  let playerTemplate = document.getElementById("playerTemplate");
-  let addHumanPlayerButton = document.getElementById("addHumanPlayer");
-  let addComputerPlayerButton = document.getElementById("addComputerPlayer");
-  let playerNameField = document.getElementById("playerName");
-  let gameplayButton = document.getElementById("gameplayButton");
-
-  const newFromTemplate = (template) => {
-    let element = template.cloneNode(true);
-    element.classList.remove("template");
-    element.attributes.removeNamedItem("id");
-    return element;
-  };
-
-  const newPlayerElement = () => {
-    return newFromTemplate(playerTemplate);
-  };
-
-  const addPlayer = (name, playerCreated) => {
-    let player = new Player();
-    player.name = name;
-    playerCreated(player);
-
-    let playerElement = newPlayerElement();
-    player.setPlayerElement(playerElement);
-    players.appendChild(playerElement);
-
-    game.addPlayer(player);
-  };
-
-  addHumanPlayerButton.addEventListener("click", () => {
-    addPlayer(playerNameField.value, player => {
-      playerNameField.value = "";
-    });
-  });
-
-  addComputerPlayerButton.addEventListener("click", () => {
-    if (availableComputerPlayers.length === 0) {
-      alert("Sorry, there are no more available players.");
-      return;
-    }
-    addPlayer(pluckRandom(availableComputerPlayers), player => {
-      player.human = false;
-    })
-  });
-
-  gameplayButton.addEventListener("click", () => {
-    game.pickImposter();
-    gameplayButton.innerText = "Start!"
-  });
 </script>
 <div id="images" style="display: none">
   <img class="image" id="blueImage" src="data:image/png;base64,
