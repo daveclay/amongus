@@ -12,11 +12,6 @@
     padding: 0;
   }
 
-  .imposter {
-    padding: 0;
-    margin: 0;
-  }
-
   .player {
     border: 1px solid gray;
     background-color: white;
@@ -52,6 +47,11 @@
 
   .crewmateHighlight {
     background-color: #e3c569;
+    color: black;
+  }
+
+  .votingHighlight {
+    background-color: yellow;
     color: black;
   }
 
@@ -133,7 +133,7 @@
 
     createVoteButton() {
       this.voteButton = this.playerElement.getElementsByClassName("voteButton")[0];
-      this.voteButton.addEventListener("click", () => this.votedAsImposter());
+      this.voteButton.addEventListener("click", () => this.handleVoteClicked());
     }
 
     createStatusElement() {
@@ -148,12 +148,17 @@
       this.createVoteButton();
     };
 
-    votedAsImposter() {
+    handleVoteClicked() {
+      this.tallyVoteAsImposter();
+      this.votedCallback(this);
+    }
+
+    tallyVoteAsImposter() {
       this.voteCount += 1;
     }
 
-    setStatus(styleClass, text) {
-      this.statusElement.innerHTML = `<span class='${styleClass}'><br/>${text}</span>`;
+    setStatus(text) {
+      this.statusElement.innerHTML = text;
     }
 
     clearStatus() {
@@ -163,10 +168,10 @@
     showImposterStatus() {
       this.showing = true;
       if (this.imposter) {
-        this.setStatus("imposter", "is the imposter!");
+        this.setStatus("is the imposter!");
         this.playerElement.classList.add("imposterHighlight");
       } else {
-        this.setStatus("crewmate", "is a crewmate");
+        this.setStatus("is a crewmate");
         this.playerElement.classList.add("crewmateHighlight");
       }
     }
@@ -188,12 +193,24 @@
       }, 5000);
     };
 
-    startPlayerVote() {
-      this.showVoteButton();
+    onVotedAsImposter(callback) {
+      this.votedCallback = callback;
     }
 
     showVoteButton() {
       this.voteButton.classList.remove("hidden");
+    }
+
+    hideVoteButton() {
+      this.voteButton.classList.add("hidden");
+    }
+
+    voteTurnDone() {
+      this.clearStatus();
+    }
+
+    startVoteTurn() {
+      this.setStatus("Your turn to vote!");
     }
   }
 
@@ -223,6 +240,9 @@
       const addPlayer = (name, playerCreated) => {
         let player = new Player();
         player.name = name;
+        player.onVotedAsImposter(player => {
+          this.handleVotedForPlayer(player);
+        });
         playerCreated(player);
 
         let playerElement = newPlayerElement();
@@ -256,7 +276,7 @@
 
       this.emergencyMeetingButton.addEventListener("click", () =>  {
         this.emergencyMeetingButton.disabled = true;
-        game.startVoting();
+        game.startVotingPhase();
       });
     }
 
@@ -275,8 +295,67 @@
       player.imposter = true;
     };
 
-    startVoting() {
-      this.players.forEach(player => player.showVoteButton());
+    handleVotedForPlayer(player) {
+      this.currentVotingPlayer.voteTurnDone();
+      this.nextVoteTurn();
+    }
+
+    nextVotingPlayer() {
+      this.currentVotingPlayerIndex += 1;
+      this.currentVotingPlayer = this.players[this.currentVotingPlayerIndex];
+    }
+
+    startVotingPhase() {
+      this.currentVotingPlayerIndex = -1;
+      this.nextVoteTurn();
+    }
+
+    doneVotingPhase() {
+      this.hideAllVoteButtons();
+      this.tallyVotes();
+    }
+
+    tallyVotes() {
+      function sortByVote(a, b) {
+        return a.voteCount > b.voteCount ? -1 : 1;
+      }
+
+      let mostVotedPlayer = this.players.sort(sortByVote)[0];
+      let secondMostVotedPlayer = this.players.sort(sortByVote)[1];
+
+      if (mostVotedPlayer.voteCount === secondMostVotedPlayer.voteCount) {
+        alert("No one was ejected. (Tie!)");
+      } else if (mostVotedPlayer.imposter) {
+        alert(`Victory! ${mostVotedPlayer.name} was the imposter!`);
+      } else {
+        alert(`${mostVotedPlayer.name} was NOT the imposter!`);
+      }
+    }
+
+    hideAllVoteButtons() {
+      this.players.forEach(player => {
+        player.hideVoteButton();
+      });
+    }
+
+    showVoteButtonsForOtherPlayers() {
+      this.players.forEach(player => {
+        if (player !== this.currentVotingPlayer) {
+          player.showVoteButton();
+        } else {
+          player.hideVoteButton();
+        }
+      });
+    }
+
+    nextVoteTurn() {
+      this.nextVotingPlayer();
+      if (this.currentVotingPlayerIndex === this.players.length) {
+        this.doneVotingPhase();
+      } else {
+        this.showVoteButtonsForOtherPlayers();
+        this.currentVotingPlayer.startVoteTurn();
+      }
     }
   }
 
