@@ -1,5 +1,9 @@
 <html>
 <style type="text/css">
+  body {
+    background-color: #cfcfcf;
+  }
+
   .title {
     font-size: 72px;
     font-family: Helvetica, sans-serif;
@@ -9,7 +13,7 @@
   }
 
   .template {
-    display: none;
+    display: none !important;
   }
 
   .imposter {
@@ -18,11 +22,12 @@
 
   .player {
     border: 1px solid gray;
-    background-color: #cccccc;
+    background-color: white;
+    display: inline-block;
     color: #999999;
     margin: 10px;
     padding: 4px;
-    width: 600px;
+    width: 400px;
   }
 
   .imageContainer {
@@ -62,7 +67,7 @@
 
 <div id="players"></div>
 
-<div class="player template" id="playerTemplate">
+<div class="template player" id="playerTemplate">
   <div>
     <div class="imageContainer"></div>
     <div class="playerContent">
@@ -138,7 +143,7 @@
       }
       this.showing = true;
       if (this.imposter) {
-        this.playerElement.getElementsByClassName("playerName")[0].innerHTML = this.name + " <span class='imposter'>is the imposter!</span>";
+        this.playerElement.getElementsByClassName("playerName")[0].innerHTML = this.name + " <span class='imposter'><br/>is the imposter!</span>";
       }
       this.playerElement.classList.add("show");
       setTimeout(() => {
