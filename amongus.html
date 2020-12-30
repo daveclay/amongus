@@ -82,6 +82,7 @@
       <div class="status"></div>
       <div>
         <button class="hidden voteButton">Vote</button>
+        <button class="hidden skipButton">Skip</button>
       </div>
     </div>
   </div>
@@ -136,6 +137,11 @@
       this.voteButton.addEventListener("click", () => this.handleVoteClicked());
     }
 
+    createSkipButton() {
+      this.skipButton = this.playerElement.getElementsByClassName("skipButton")[0];
+      this.skipButton.addEventListener("click", () => this.handleSkipClicked());
+    }
+
     createStatusElement() {
       this.statusElement = this.playerElement.getElementsByClassName("status")[0];
     }
@@ -146,10 +152,15 @@
       this.createPlayerImage();
       this.createStatusElement();
       this.createVoteButton();
+      this.createSkipButton();
     };
 
     handleVoteClicked() {
       this.tallyVoteAsImposter();
+      this.votedCallback(this);
+    }
+
+    handleSkipClicked() {
       this.votedCallback(this);
     }
 
@@ -205,12 +216,28 @@
       this.voteButton.classList.add("hidden");
     }
 
+    showSkipButton() {
+      this.skipButton.classList.remove("hidden");
+    }
+
+    hideSkipButton() {
+      this.skipButton.classList.add("hidden");
+    }
+
     voteTurnDone() {
       this.clearStatus();
+      this.hideSkipButton();
     }
 
     startVoteTurn() {
+      this.showSkipButton();
       this.setStatus("Your turn to vote!");
+    }
+
+    reset() {
+      this.clearStatus();
+      this.imposter = false;
+      this.voteCount = 0;
     }
   }
 
@@ -269,9 +296,7 @@
       });
 
       this.startButton.addEventListener("click", () => {
-        game.pickImposter();
-        this.startButton.disabled = true;
-        this.emergencyMeetingButton.disabled = false;
+        this.resetGame();
       });
 
       this.emergencyMeetingButton.addEventListener("click", () =>  {
@@ -286,13 +311,19 @@
     };
 
     resetPlayers() {
-      this.players.forEach(player => player.imposter = false);
+      this.players.forEach(player => player.reset());
+    }
+
+    resetGame() {
+      game.pickImposter();
+      this.startButton.disabled = true;
+      this.emergencyMeetingButton.disabled = false;
     }
 
     pickImposter() {
       this.resetPlayers();
-      let player = sample(this.players);
-      player.imposter = true;
+      let imposter = sample(this.players);
+      imposter.imposter = true;
     };
 
     handleVotedForPlayer(player) {
@@ -313,6 +344,12 @@
     doneVotingPhase() {
       this.hideAllVoteButtons();
       this.tallyVotes();
+
+      this.players.forEach(player => player.show());
+
+      setTimeout(() => {
+        this.resetGame();
+      }, 5000)
     }
 
     tallyVotes() {
@@ -320,8 +357,9 @@
         return a.voteCount > b.voteCount ? -1 : 1;
       }
 
-      let mostVotedPlayer = this.players.sort(sortByVote)[0];
-      let secondMostVotedPlayer = this.players.sort(sortByVote)[1];
+      let sortedPlayers = this.players.slice().sort(sortByVote);
+      let mostVotedPlayer = sortedPlayers[0];
+      let secondMostVotedPlayer = sortedPlayers[1];
 
       if (mostVotedPlayer.voteCount === secondMostVotedPlayer.voteCount) {
         alert("No one was ejected. (Tie!)");
