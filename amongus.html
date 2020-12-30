@@ -115,6 +115,27 @@
     return array.splice(randomIndex(array), 1);
   }
 
+  class PlayerStatus {
+    constructor(text, styleClass) {
+      this.text = text;
+      this.styleClass = styleClass;
+    }
+
+    apply(player) {
+      player.statusElement.innerHTML = this.text;
+      player.playerElement.classList.add(this.styleClass);
+    }
+
+    unapply(player) {
+      player.statusElement.innerHTML = "";
+      player.playerElement.classList.remove(this.styleClass);
+    }
+  }
+
+  const votingStatus = new PlayerStatus("Your turn to vote!", "votingHighlight");
+  const imposterStatus = new PlayerStatus("is the imposter!", "imposterHighlight");
+  const crewmateStatus = new PlayerStatus("is a crewmate", "crewmateHighlight");
+
   class Player {
     constructor() {
       this.imposter = false;
@@ -168,29 +189,29 @@
       this.voteCount += 1;
     }
 
-    setStatus(text) {
-      this.statusElement.innerHTML = text;
+    setStatus(status) {
+      this.currentStatus = status;
+      status.apply(this);
     }
 
     clearStatus() {
-      this.statusElement.innerHTML = "";
+      if (this.currentStatus) {
+        this.currentStatus.unapply(this);
+        this.currentStatus = null;
+      }
     }
 
     showImposterStatus() {
       this.showing = true;
       if (this.imposter) {
-        this.setStatus("is the imposter!");
-        this.playerElement.classList.add("imposterHighlight");
+        this.setStatus(imposterStatus);
       } else {
-        this.setStatus("is a crewmate");
-        this.playerElement.classList.add("crewmateHighlight");
+        this.setStatus(crewmateStatus);
       }
     }
 
     hideImposterStatus() {
       this.clearStatus();
-      this.playerElement.classList.remove("imposterHighlight");
-      this.playerElement.classList.remove("crewmateHighlight");
       this.showing = false;
     }
 
@@ -230,8 +251,8 @@
     }
 
     startVoteTurn() {
+      this.setStatus(votingStatus);
       this.showSkipButton();
-      this.setStatus("Your turn to vote!");
     }
 
     reset() {
