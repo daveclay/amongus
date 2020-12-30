@@ -107,22 +107,29 @@
       this.imposter = false;
       this.human = true;
       this.showing = false;
-
       this.image = pluckRandom(availableImages);
     };
 
-    setPlayerElement(playerElement) {
-      this.playerElement = playerElement;
-      playerElement.getElementsByClassName("playerName")[0].innerHTML = this.name;
-      playerElement.addEventListener("click", () => {
+    createPlayerImage() {
+      this.imageElement = document.getElementById(this.image + "Image");
+      this.playerElement.getElementsByClassName("imageContainer")[0].appendChild(this.imageElement);
+      this.imageElement.addEventListener("click", () => {
         this.show();
       });
-      let imageElement = document.getElementById(this.image + "Image");
-      playerElement.getElementsByClassName("imageContainer")[0].appendChild(imageElement);
+    }
 
-      this.voteButton = playerElement.getElementsByClassName("voteButton")[0];
+    createVoteButton() {
+      this.voteButton = this.playerElement.getElementsByClassName("voteButton")[0];
       this.voteButton.addEventListener("click", () => {
       });
+    }
+
+    setPlayerElement(playerElement) {
+      this.playerElement = playerElement;
+      this.playerElement.getElementsByClassName("playerName")[0].innerHTML = this.name;
+
+      this.createPlayerImage();
+      this.createVoteButton();
     };
 
     show() {
@@ -181,41 +188,37 @@
 
   const newPlayerElement = () => {
     return newFromTemplate(playerTemplate);
-  }
+  };
+
+  const addPlayer = (name, playerCreated) => {
+    let player = new Player();
+    player.name = name;
+    playerCreated(player);
+
+    let playerElement = newPlayerElement();
+    player.setPlayerElement(playerElement);
+    players.appendChild(playerElement);
+
+    game.addPlayer(player);
+  };
 
   addHumanPlayerButton.addEventListener("click", () => {
-    let player = new Player();
-    player.name = playerNameField.value;
-
-    let playerElement = newPlayerElement();
-    player.setPlayerElement(playerElement);
-
-    players.appendChild(playerElement);
-    playerNameField.value = "";
-
-    game.addPlayer(player);
-  })
-
-  addComputerPlayerButton.addEventListener("click", function () {
-    if (availableComputerPlayers.length === 0) {
-      alert("No more players!");
-      return;
-    }
-    let player = new Player();
-    player.human = false;
-
-    player.name = pluckRandom(availableComputerPlayers);
-
-    let playerElement = newPlayerElement();
-    player.setPlayerElement(playerElement);
-
-    players.appendChild(playerElement);
-    playerNameField.value = "";
-
-    game.addPlayer(player);
+    addPlayer(playerNameField.value, player => {
+      playerNameField.value = "";
+    });
   });
 
-  gameplayButton.addEventListener("click", function () {
+  addComputerPlayerButton.addEventListener("click", () => {
+    if (availableComputerPlayers.length === 0) {
+      alert("Sorry, there are no more available players.");
+      return;
+    }
+    addPlayer(pluckRandom(availableComputerPlayers), player => {
+      player.human = false;
+    })
+  });
+
+  gameplayButton.addEventListener("click", () => {
     game.pickImposter();
     gameplayButton.innerText = "Start!"
   });
