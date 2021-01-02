@@ -126,6 +126,10 @@
 </div>
 
 <script type="text/javascript">
+  const END_ROOM_PHASE_TIMEOUT = 100;
+  const END_TASK_PHASE_TIMEOUT = 100;
+  const END_VOTE_PHASE_TIMEOUT = 200;
+
   let availableComputerPlayers = [
     "Funk", "Foo", "Grandpop", "Grandma", "Preston", "Mouth", "Crayon"
   ];
@@ -340,7 +344,7 @@
       this.createRoomElement();
       this.createPlayersElement();
       this.createTaskElement();
-      this.updateTask();
+      this.reset();
     }
 
     createRoomElement() {
@@ -356,7 +360,7 @@
       this.taskElement = this.roomElement.getElementsByClassName("task")[0];
     }
 
-    updateTask() {
+    updateTaskStatus() {
       this.taskElement.innerHTML = `${this.task} ${this.getRoomStatus()}`
       this.roomElement.classList.remove("completed");
       if (this.taskCompleted) {
@@ -380,6 +384,11 @@
 
     getRoomStatus() {
       return this.taskCompleted ? "completed" : "needs to be done!"
+    }
+
+    reset() {
+      this.taskCompleted = false;
+      this.updateTaskStatus();
     }
   }
 
@@ -474,6 +483,10 @@
       this.players.forEach(player => player.reset());
     }
 
+    resetRooms() {
+      this.rooms.forEach(room => room.reset());
+    }
+
     isAllRoomTasksCompleted() {
       let incompleteRoom = this.rooms.find(room => !room.taskCompleted);
       return incompleteRoom == null;
@@ -483,6 +496,8 @@
      * Start/Reset Game
      **********************************/
     resetGame() {
+      this.resetPlayers();
+      this.resetRooms();
       this.pickImposter();
       this.startButton.disabled = true;
       this.emergencyMeetingButton.disabled = false;
@@ -490,7 +505,6 @@
     }
 
     pickImposter() {
-      this.resetPlayers();
       let imposter = sample(this.players);
       imposter.imposter = true;
     };
@@ -499,8 +513,13 @@
      * Room Phase
      **********************************/
 
+    updateRoomsTaskStatus() {
+      this.rooms.forEach(room => room.updateTaskStatus());
+    }
+
     startRoomPhase() {
-      this.rooms.forEach(room => room.updateTask());
+      this.notify("Starting Room Phase! Players heading to rooms...");
+      this.updateRoomsTaskStatus();
       /**
        * The crew go to a room and perform the task
        * The imposters goes to locations to sabotage them by not doing the task
@@ -520,7 +539,9 @@
     }
 
     endRoomPhase() {
-      this.startTaskPhase();
+      setTimeout(() => {
+        this.startTaskPhase();
+      }, END_ROOM_PHASE_TIMEOUT);
     }
 
     /**********************************
@@ -528,22 +549,24 @@
      **********************************/
 
     startTaskPhase() {
+      this.notify("Starting Task Phase! Players are performing tasks... or NOT!");
       this.players.forEach(player => {
         player.performTask();
       });
-
       this.endTaskPhase();
     }
 
     endTaskPhase() {
       if (this.isAllRoomTasksCompleted()) {
+        this.updateRoomsTaskStatus();
         this.notify("Crewmates Win!");
+        this.startButton.disabled = false;
         return;
       }
       // TODO: next button?
       setTimeout(() => {
         this.startRoomPhase();
-      }, 100);
+      }, END_TASK_PHASE_TIMEOUT);
     }
 
     /**********************************
@@ -563,7 +586,7 @@
 
       setTimeout(() => {
         this.startRoomPhase();
-      }, 2000)
+      }, END_VOTE_PHASE_TIMEOUT)
     }
 
     tallyVotes() {
