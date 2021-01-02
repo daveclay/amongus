@@ -543,7 +543,7 @@
       // TODO: next button?
       setTimeout(() => {
         this.startRoomPhase();
-      }, 500);
+      }, 100);
     }
 
     /**********************************
@@ -582,8 +582,6 @@
       } else {
         this.notify(`${mostVotedPlayer.name} was NOT the imposter!`);
       }
-
-      this.endVotePhase();
     }
 
     hideAllVoteButtons() {
