@@ -107,7 +107,9 @@ class Game {
   currentPlayerPerformsTask(callback) {
     setTimeout(() => {
       this.currentTurnPlayer.performTask();
-      this.updateRoomsTaskStatus();
+      if  (this.currentTurnPlayer.human) {
+        this.currentTurnPlayer.currentRoom.showTaskStatus();
+      }
       callback();
     }, 1000);
   }
@@ -115,6 +117,7 @@ class Game {
   startRoomSelection(callback) {
     this.rooms.forEach(room => {
       room.onRoomSelected = (room) => {
+        this.currentTurnPlayer.currentRoom.hideTaskStatus();
         room.addPlayer(this.currentTurnPlayer);
         this.cancelRoomSelection();
         callback();
@@ -179,63 +182,6 @@ class Game {
   }
 
   /**********************************
-   * Room Phase
-   **********************************/
-
-  updateRoomsTaskStatus() {
-    this.rooms.forEach(room => room.updateTaskStatus());
-  }
-
-  startRoomPhase() {
-    this.notify("Starting Room Phase! Players heading to rooms...");
-    this.updateRoomsTaskStatus();
-    /**
-     * The crew go to a room and perform the task
-     * The imposters goes to locations to sabotage them by not doing the task
-     * the crew has to figure out that something they fixed is now broken vs just broken?
-     *
-     * TODO: Only call emergency meeting if you're in the cafeteria?
-     */
-    this.sendAllPlayersToRandomRooms();
-    this.endRoomPhase();
-  }
-
-  sendAllPlayersToRandomRooms() {
-    this.players.forEach(player => {
-      let room = sample(this.rooms);
-      room.addPlayer(player);
-    })
-  }
-
-  endRoomPhase() {
-    setTimeout(() => {
-      this.startTaskPhase();
-    }, END_ROOM_PHASE_TIMEOUT);
-  }
-
-  /**********************************
-   * Task Phase
-   **********************************/
-
-  startTaskPhase() {
-    this.notify("Starting Task Phase! Players are performing tasks... or NOT!");
-    this.players.forEach(player => {
-      player.performTask();
-    });
-    this.endTaskPhase();
-  }
-
-  endTaskPhase() {
-    if (this.isAllRoomTasksCompleted()) {
-      this.updateRoomsTaskStatus();
-      this.notify("Crewmates Win!");
-      this.startButton.disabled = false;
-      return;
-    }
-    this.nextPlayerTurnButton.disabled = false;
-  }
-
-  /**********************************
    * Voting Phase
    **********************************/
 
@@ -249,10 +195,6 @@ class Game {
     this.tallyVotes();
 
     this.players.forEach(player => player.show());
-
-    setTimeout(() => {
-      this.startRoomPhase();
-    }, END_VOTE_PHASE_TIMEOUT)
   }
 
   tallyVotes() {

@@ -36,18 +36,46 @@ class Room {
     this.taskElement = this.roomElement.getElementsByClassName("task")[0];
   }
 
-  updateTaskStatus() {
+  showTaskStatus() {
+    this.hideTaskStatus();
     this.taskElement.innerHTML = `${this.task} ${this.getRoomStatus()}`
-    this.roomElement.classList.remove("completed");
     if (this.taskCompleted) {
       this.roomElement.classList.add("completed");
+    }
+  }
+
+  hideTaskStatus() {
+    this.taskElement.innerHTML = "";
+    this.roomElement.classList.remove("completed");
+  }
+
+  updateTaskStatus() {
+    let humanPlayer = this.players.find(player => player.human)
+    if (humanPlayer == null) {
+      this.hideTaskStatus();
     }
   }
 
   addPlayer(player) {
     this.players[this.players.length] = player;
     this.playersElement.appendChild(player.playerElement);
+    if (player.human) {
+      this.showTaskStatus();
+    } else {
+      this.updateTaskStatus();
+    }
+
+    if (player.currentRoom) {
+      player.currentRoom.removePlayer(player);
+      player.currentRoom.updateTaskStatus();
+    }
+
     player.joinedRoom(this);
+  }
+
+  removePlayer(player) {
+    let idx = this.players.indexOf(player);
+    this.players.splice(idx, 1);
   }
 
   isOnlyPersonInTheRoom(person) {
@@ -69,6 +97,5 @@ class Room {
 
   reset() {
     this.taskCompleted = false;
-    this.updateTaskStatus();
   }
 }
