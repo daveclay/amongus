@@ -34,6 +34,7 @@ class Room {
 
   createTaskElement() {
     this.taskElement = this.roomElement.getElementsByClassName("task")[0];
+    this.taskStatusElement = this.roomElement.getElementsByClassName("taskStatus")[0];
   }
 
   showTaskStatus() {
@@ -41,12 +42,18 @@ class Room {
     this.taskElement.innerHTML = `${this.task} ${this.getRoomStatus()}`
     if (this.taskCompleted) {
       this.roomElement.classList.add("completed");
+      this.taskStatusElement.classList.add("completed");
+    } else {
+      this.taskStatusElement.classList.add("incomplete");
+
     }
   }
 
   hideTaskStatus() {
     this.taskElement.innerHTML = "";
     this.roomElement.classList.remove("completed");
+    this.taskStatusElement.classList.remove("completed");
+    this.taskStatusElement.classList.remove("incomplete");
   }
 
   updateTaskStatus() {

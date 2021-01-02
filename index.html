@@ -26,6 +26,8 @@
     background-color: white;
     display: inline-block;
     vertical-align: top;
+    width: 400px;
+    height: 400px;
   }
 
   .room .roomName {
@@ -34,10 +36,24 @@
 
   .room .task {
     font-size: 13px;
+    display: inline-block;
   }
 
-  .room.completed {
-    background-color: #ebfbd3;
+  .taskStatus {
+    display: inline-block;
+    background-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .taskStatus.completed {
+    background-image: url('completed.png');
+    background-repeat: no-repeat;
+  }
+
+  .taskStatus.incomplete {
+    background-image: url('incomplete.png');
+    background-repeat: no-repeat;
   }
 
   .player {
@@ -54,7 +70,7 @@
   }
 
   .playerName {
-    font-size: 32px;
+    font-size: 18px;
   }
 
   .playerContent {
@@ -88,7 +104,7 @@
   }
 
   .image {
-    width: 100px;
+    width: 40px;
   }
 </style>
 <body>
@@ -113,7 +129,10 @@
 
 <div class="hidden room" id="roomTemplate">
   <div class="roomName"></div>
-  <div class="task"></div>
+  <div>
+    <div class="taskStatus"></div>
+    <div class="task"></div>
+  </div>
   <div class="players"></div>
 </div>
 
