@@ -21,6 +21,11 @@ class Room {
   createRoomElement() {
     this.roomElement = newFromTemplate(document.getElementById("roomTemplate"));
     this.roomElement.getElementsByClassName("roomName")[0].innerHTML = this.name;
+    this.roomElement.addEventListener("click", () => {
+      if (this.onRoomSelected) {
+        this.onRoomSelected(this);
+      }
+    })
   }
 
   createPlayersElement() {

@@ -88,17 +88,44 @@ class Game {
     this.currentTurnPlayer.startPlayerTurn();
 
     setTimeout(() => {
-      let room = sample(this.rooms);
-      room.addPlayer(this.currentTurnPlayer);
-
-      setTimeout(() => {
-        this.currentTurnPlayer.performTask();
-        this.updateRoomsTaskStatus();
-        setTimeout(() => {
+      if (this.currentTurnPlayer.human) {
+        this.startRoomSelection(() => {
+          this.currentPlayerPerformsTask(() => {
+            this.nextPlayerTurn();
+          });
+        });
+      } else {
+        let room = sample(this.rooms);
+        room.addPlayer(this.currentTurnPlayer);
+        this.currentPlayerPerformsTask(() => {
           this.nextPlayerTurn();
-        }, 1000);
-      }, 1000);
+        })
+      }
     }, 1000);
+  }
+
+  currentPlayerPerformsTask(callback) {
+    setTimeout(() => {
+      this.currentTurnPlayer.performTask();
+      this.updateRoomsTaskStatus();
+      callback();
+    }, 1000);
+  }
+
+  startRoomSelection(callback) {
+    this.rooms.forEach(room => {
+      room.onRoomSelected = (room) => {
+        room.addPlayer(this.currentTurnPlayer);
+        this.cancelRoomSelection();
+        callback();
+      }
+    });
+  }
+
+  cancelRoomSelection() {
+    this.rooms.forEach(room => {
+      room.onRoomSelected = null;
+    });
   }
 
   notify(message) {
