@@ -2,14 +2,42 @@
 <style type="text/css">
   body {
     background-color: #cfcfcf;
+    font-family: Helvetica, sans-serif;
   }
 
   .title {
-    font-size: 72px;
-    font-family: Helvetica, sans-serif;
+    display: inline-block;
+    vertical-align: top;
+    font-size: 32px;
     color: red;
     margin: 0;
     padding: 0;
+  }
+
+  .gameControls {
+    margin-top: 8px;
+    display: inline-block;
+  }
+
+  .room {
+    margin: 10px;
+    padding: 4px;
+    border: 1px solid black;
+    background-color: white;
+    display: inline-block;
+    vertical-align: top;
+  }
+
+  .room .roomName {
+    font-size: 18px;
+  }
+
+  .room .task {
+    font-size: 13px;
+  }
+
+  .room.completed {
+    background-color: greenyellow;
   }
 
   .player {
@@ -19,7 +47,6 @@
     color: #999999;
     margin: 10px;
     padding: 4px;
-    width: 400px;
   }
 
   .imageContainer {
@@ -60,19 +87,29 @@
   }
 </style>
 <body>
-<h1 class="title">AMONG US</h1>
-
-<div class="controls">
-  <input id="playerName" placeholder="Name" type="playerName"/>
-  <button id="addHumanPlayer">Add Human Player</button>
-  <p/>
-  <button id="addComputerPlayer">Add Computer Player</button>
-  <p/>
-  <button id="startButton">Start!</button>
-  <button disabled="true" id="emergencyMeetingButton">Emergency Meeting!</button>
+<div class="header">
+  <div class="title">AMONG US</div>
+  <div class="gameControls">
+    <span class="addHumanPlayer">
+    <input id="playerName" placeholder="Player Name" type="playerName"/>
+    <button id="addHumanPlayer">Add Human Player</button>
+    <button id="addComputerPlayer">Add Computer Player</button>
+    </span>
+    |
+    <button id="startButton">Start!</button>
+    <button disabled="true" id="emergencyMeetingButton">Emergency Meeting!</button>
+  </div>
+  <div class="notify"></div>
 </div>
 
 <div id="players"></div>
+<div id="rooms"></div>
+
+<div class="hidden room" id="roomTemplate">
+  <div class="roomName"></div>
+  <div class="task"></div>
+  <div class="players"></div>
+</div>
 
 <div class="hidden player" id="playerTemplate">
   <div>
@@ -92,6 +129,7 @@
   let availableComputerPlayers = [
     "Funk", "Foo", "Grandpop", "Grandma", "Preston", "Mouth", "Crayon"
   ];
+
   let availableImages = [
     "blue",
     "darkgreen",
@@ -114,6 +152,13 @@
   const pluckRandom = (array) => {
     return array.splice(randomIndex(array), 1);
   }
+
+  const newFromTemplate = (template) => {
+    let element = template.cloneNode(true);
+    element.classList.remove("hidden");
+    element.attributes.removeNamedItem("id");
+    return element;
+  };
 
   class PlayerStatus {
     constructor(text, styleClass) {
@@ -260,6 +305,82 @@
       this.imposter = false;
       this.voteCount = 0;
     }
+
+    joinedRoom(room) {
+      this.currentRoom = room;
+    }
+
+    performTask() {
+      if (this.currentRoom == null) {
+        alert(`${this.name} is not in a room! That's a bug, daddy!`);
+        return;
+      }
+
+      if (this.imposter) {
+        this.currentRoom.breakTask();
+      } else {
+        this.currentRoom.fixTask();
+      }
+    }
+  }
+
+  /**
+   * Imposter's goal:
+   * Sabotage the ship by preventing crewmates from doing all tasks
+   *
+   * Crewmates' goal:
+   * Complete all tasks _or_ vote the imposter off the ship
+   */
+  class Room {
+    constructor(name, task) {
+      this.name = name;
+      this.task = task;
+      this.players = [];
+      this.taskCompleted = false;
+      this.createRoomElement();
+      this.createPlayersElement();
+      this.createTaskElement();
+      this.updateTask();
+    }
+
+    createRoomElement() {
+      this.roomElement = newFromTemplate(document.getElementById("roomTemplate"));
+      this.roomElement.getElementsByClassName("roomName")[0].innerHTML = this.name;
+    }
+
+    createPlayersElement() {
+      this.playersElement = this.roomElement.getElementsByClassName("players")[0];
+    }
+
+    createTaskElement() {
+      this.taskElement = this.roomElement.getElementsByClassName("task")[0];
+    }
+
+    updateTask() {
+      this.taskElement.innerHTML = `${this.task} ${this.getRoomStatus()}`
+      this.roomElement.classList.remove("completed");
+      if (this.taskCompleted) {
+        this.roomElement.classList.add("completed");
+      }
+    }
+
+    addPlayer(player) {
+      this.players[this.players.length] = player;
+      this.playersElement.appendChild(player.playerElement);
+      player.joinedRoom(this);
+    }
+
+    breakTask() {
+      this.taskCompleted = false;
+    }
+
+    fixTask() {
+      this.taskCompleted = true;
+    }
+
+    getRoomStatus() {
+      return this.taskCompleted ? "completed" : "needs to be done!"
+    }
   }
 
   class Game {
@@ -273,13 +394,17 @@
       this.playerNameField = document.getElementById("playerName");
       this.startButton = document.getElementById("startButton");
       this.emergencyMeetingButton = document.getElementById("emergencyMeetingButton");
+      this.notifyElement = document.getElementById("notify");
+      this.roomsElement = document.getElementById("rooms");
 
-      const newFromTemplate = (template) => {
-        let element = template.cloneNode(true);
-        element.classList.remove("hidden");
-        element.attributes.removeNamedItem("id");
-        return element;
-      };
+      this.rooms = [
+        new Room("Reactor", "Unlock manifolds"),
+        new Room("Cafeteria", "Fix wiring"),
+        new Room("Admin", "Swipe card"),
+        new Room("Navigation", "Stabilize steering"),
+        new Room("Weapons", "Destroy asteroids"),
+        new Room("Engine", "Fill the fuel tank")
+      ]
 
       const newPlayerElement = () => {
         return newFromTemplate(this.playerTemplate);
@@ -322,7 +447,21 @@
 
       this.emergencyMeetingButton.addEventListener("click", () =>  {
         this.emergencyMeetingButton.disabled = true;
-        game.startVotingPhase();
+        game.startVotePhase();
+      });
+
+      this.rooms.forEach(room => {
+        this.roomsElement.appendChild(room.roomElement);
+      })
+    }
+
+    notify(message) {
+      if (this.notifyTimeout) {
+        clearTimeout(this.notifyTimeout);
+      }
+      this.notifyElement.innerHTML = message;
+      this.notifyTimeout = setTimeout(() => {
+        this.notifyElement.innerHTML = "";
       });
     }
 
@@ -335,10 +474,14 @@
       this.players.forEach(player => player.reset());
     }
 
+    /**********************************
+     * Start/Reset Game
+     **********************************/
     resetGame() {
-      game.pickImposter();
+      this.pickImposter();
       this.startButton.disabled = true;
       this.emergencyMeetingButton.disabled = false;
+      this.startRoomPhase();
     }
 
     pickImposter() {
@@ -347,30 +490,71 @@
       imposter.imposter = true;
     };
 
-    handleVotedForPlayer(player) {
-      this.currentVotingPlayer.voteTurnDone();
-      this.nextVoteTurn();
+    /**********************************
+     * Room Phase
+     **********************************/
+
+    startRoomPhase() {
+      /**
+       * The crew go to a room and perform the task
+       * The imposters goes to locations to sabotage them by not doing the task
+       * the crew has to figure out that something they fixed is now broken vs just broken?
+       *
+       * TODO: Only call emergency meeting if you're in the cafeteria?
+       */
+      this.sendPlayersToRooms();
+      this.endRoomPhase();
     }
 
-    nextVotingPlayer() {
-      this.currentVotingPlayerIndex += 1;
-      this.currentVotingPlayer = this.players[this.currentVotingPlayerIndex];
+    sendPlayersToRooms() {
+      this.players.forEach(player => {
+        let room = sample(this.rooms);
+        room.addPlayer(player);
+      })
     }
 
-    startVotingPhase() {
+    endRoomPhase() {
+      this.startTaskPhase();
+    }
+
+    /**********************************
+     * Task Phase
+     **********************************/
+
+    startTaskPhase() {
+      this.players.forEach(player => {
+        player.performTask();
+      });
+
+      this.endTaskPhase();
+    }
+
+    endTaskPhase() {
+      // TODO: next button?
+      setTimeout(() => {
+        this.rooms.forEach(room => room.updateTask());
+        this.startRoomPhase();
+      }, 5000);
+    }
+
+    /**********************************
+     * Voting Phase
+     **********************************/
+
+    startVotePhase() {
       this.currentVotingPlayerIndex = -1;
       this.nextVoteTurn();
     }
 
-    doneVotingPhase() {
+    endVotePhase() {
       this.hideAllVoteButtons();
       this.tallyVotes();
 
       this.players.forEach(player => player.show());
 
       setTimeout(() => {
-        this.resetGame();
-      }, 5000)
+        this.startRoomPhase();
+      }, 2000)
     }
 
     tallyVotes() {
@@ -383,12 +567,14 @@
       let secondMostVotedPlayer = sortedPlayers[1];
 
       if (mostVotedPlayer.voteCount === secondMostVotedPlayer.voteCount) {
-        alert("No one was ejected. (Tie!)");
+        this.notify("No one was ejected. (Tie!)");
       } else if (mostVotedPlayer.imposter) {
-        alert(`Victory! ${mostVotedPlayer.name} was the imposter!`);
+        this.notify(`Victory! ${mostVotedPlayer.name} was the imposter!`);
       } else {
-        alert(`${mostVotedPlayer.name} was NOT the imposter!`);
+        this.notify(`${mostVotedPlayer.name} was NOT the imposter!`);
       }
+
+      this.endVotePhase();
     }
 
     hideAllVoteButtons() {
@@ -410,11 +596,21 @@
     nextVoteTurn() {
       this.nextVotingPlayer();
       if (this.currentVotingPlayerIndex === this.players.length) {
-        this.doneVotingPhase();
+        this.endVotePhase();
       } else {
         this.showVoteButtonsForOtherPlayers();
         this.currentVotingPlayer.startVoteTurn();
       }
+    }
+
+    handleVotedForPlayer(player) {
+      this.currentVotingPlayer.voteTurnDone();
+      this.nextVoteTurn();
+    }
+
+    nextVotingPlayer() {
+      this.currentVotingPlayerIndex += 1;
+      this.currentVotingPlayer = this.players[this.currentVotingPlayerIndex];
     }
   }
 
