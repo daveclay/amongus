@@ -45,7 +45,12 @@ class Room {
     player.joinedRoom(this);
   }
 
-  breakTask() {
+  isOnlyPersonInTheRoom(person) {
+    return this.players.length === 1 &&
+        this.players[0].name === person.name;
+  }
+
+  sabotageTask() {
     this.taskCompleted = false;
   }
 

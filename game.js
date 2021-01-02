@@ -11,6 +11,8 @@ class Game {
     this.emergencyMeetingButton = document.getElementById("emergencyMeetingButton");
     this.notifyElement = document.getElementById("notify");
     this.roomsElement = document.getElementById("rooms");
+    this.nextPlayerTurnButton = document.getElementById("nextButton");
+    this.currentTurnPlayerIndex = -1;
 
     this.rooms = [
       new Room("Reactor", "Unlock manifolds"),
@@ -65,9 +67,38 @@ class Game {
       game.startVotePhase();
     });
 
+    this.nextPlayerTurnButton.addEventListener("click", () => {
+      this.nextPlayerTurn();
+    })
+
     this.rooms.forEach(room => {
       this.roomsElement.appendChild(room.roomElement);
     })
+  }
+
+  nextPlayerTurn() {
+    if (this.currentTurnPlayer) {
+      this.currentTurnPlayer.playerTurnDone();
+    }
+    this.currentTurnPlayerIndex += 1;
+    if (this.currentTurnPlayerIndex === this.players.length) {
+      this.currentTurnPlayerIndex = 0;
+    }
+    this.currentTurnPlayer = this.players[this.currentTurnPlayerIndex];
+    this.currentTurnPlayer.startPlayerTurn();
+
+    setTimeout(() => {
+      let room = sample(this.rooms);
+      room.addPlayer(this.currentTurnPlayer);
+
+      setTimeout(() => {
+        this.currentTurnPlayer.performTask();
+        this.updateRoomsTaskStatus();
+        setTimeout(() => {
+          this.nextPlayerTurn();
+        }, 1000);
+      }, 1000);
+    }, 1000);
   }
 
   notify(message) {
@@ -105,15 +136,20 @@ class Game {
     this.resetPlayers();
     this.resetRooms();
     this.pickImposter();
-    this.startButton.disabled = true;
-    this.emergencyMeetingButton.disabled = false;
-    this.startRoomPhase();
+    this.everyoneInCafeteria();
   }
 
   pickImposter() {
     let imposter = sample(this.players);
     imposter.imposter = true;
   };
+
+  everyoneInCafeteria() {
+    let cafeteria = this.rooms.find(room => room.name === "Cafeteria");
+    this.players.forEach(player => {
+      cafeteria.addPlayer(player);
+    });
+  }
 
   /**********************************
    * Room Phase
@@ -133,11 +169,11 @@ class Game {
      *
      * TODO: Only call emergency meeting if you're in the cafeteria?
      */
-    this.sendPlayersToRooms();
+    this.sendAllPlayersToRandomRooms();
     this.endRoomPhase();
   }
 
-  sendPlayersToRooms() {
+  sendAllPlayersToRandomRooms() {
     this.players.forEach(player => {
       let room = sample(this.rooms);
       room.addPlayer(player);
@@ -169,10 +205,7 @@ class Game {
       this.startButton.disabled = false;
       return;
     }
-    // TODO: next button?
-    setTimeout(() => {
-      this.startRoomPhase();
-    }, END_TASK_PHASE_TIMEOUT);
+    this.nextPlayerTurnButton.disabled = false;
   }
 
   /**********************************

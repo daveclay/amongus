@@ -1,11 +1,11 @@
 class PlayerStatus {
-  constructor(text, styleClass) {
-    this.text = text;
+  constructor(styleClass, textCallback) {
+    this.textCallback = textCallback
     this.styleClass = styleClass;
   }
 
   apply(player) {
-    player.statusElement.innerHTML = this.text;
+    player.statusElement.innerHTML = this.textCallback(player);
     player.playerElement.classList.add(this.styleClass);
   }
 
@@ -15,9 +15,22 @@ class PlayerStatus {
   }
 }
 
-const votingStatus = new PlayerStatus("Your turn to vote!", "votingHighlight");
-const imposterStatus = new PlayerStatus("is the imposter!", "imposterHighlight");
-const crewmateStatus = new PlayerStatus("is a crewmate", "crewmateHighlight");
+const turnStatus = new PlayerStatus(
+    "turnHighlight",
+    player => `${player.name}'s turn!`);
+
+const votingStatus = new PlayerStatus(
+    "votingHighlight",
+    player => `${player.name}'s turn to vote!`);
+
+const imposterStatus = new PlayerStatus(
+"imposterHighlight",
+    player => `${player.name} is the imposter!`);
+
+const crewmateStatus = new PlayerStatus(
+    "crewmateHighlight",
+    player => `${player.name} is a crewmate`);
+
 
 class Player {
   constructor() {
@@ -138,6 +151,14 @@ class Player {
     this.showSkipButton();
   }
 
+  startPlayerTurn() {
+    this.setStatus(turnStatus);
+  }
+
+  playerTurnDone() {
+    this.clearStatus();
+  }
+
   reset() {
     this.clearStatus();
     this.imposter = false;
@@ -155,7 +176,9 @@ class Player {
     }
 
     if (this.imposter) {
-      this.currentRoom.breakTask();
+        if (this.currentRoom.isOnlyPersonInTheRoom(this)) {
+          this.currentRoom.sabotageTask();
+        }
     } else {
       this.currentRoom.fixTask();
     }
