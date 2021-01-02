@@ -99,7 +99,7 @@
     <button id="startButton">Start!</button>
     <button disabled="true" id="emergencyMeetingButton">Emergency Meeting!</button>
   </div>
-  <div class="notify"></div>
+  <div id="notify"></div>
 </div>
 
 <div id="players"></div>
@@ -462,7 +462,7 @@
       this.notifyElement.innerHTML = message;
       this.notifyTimeout = setTimeout(() => {
         this.notifyElement.innerHTML = "";
-      });
+      }, 5000);
     }
 
     addPlayer(player) {
@@ -472,6 +472,11 @@
 
     resetPlayers() {
       this.players.forEach(player => player.reset());
+    }
+
+    isAllRoomTasksCompleted() {
+      let incompleteRoom = this.rooms.find(room => !room.taskCompleted);
+      return incompleteRoom == null;
     }
 
     /**********************************
@@ -495,6 +500,7 @@
      **********************************/
 
     startRoomPhase() {
+      this.rooms.forEach(room => room.updateTask());
       /**
        * The crew go to a room and perform the task
        * The imposters goes to locations to sabotage them by not doing the task
@@ -530,11 +536,14 @@
     }
 
     endTaskPhase() {
+      if (this.isAllRoomTasksCompleted()) {
+        this.notify("Crewmates Win!");
+        return;
+      }
       // TODO: next button?
       setTimeout(() => {
-        this.rooms.forEach(room => room.updateTask());
         this.startRoomPhase();
-      }, 5000);
+      }, 500);
     }
 
     /**********************************
