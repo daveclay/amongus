@@ -60,17 +60,14 @@ class Room {
     let humanPlayer = this.players.find(player => player.human)
     if (humanPlayer == null) {
       this.hideTaskStatus();
+    } else {
+      this.showTaskStatus();
     }
   }
 
   addPlayer(player) {
     this.players[this.players.length] = player;
     this.playersElement.appendChild(player.playerElement);
-    if (player.human) {
-      this.showTaskStatus();
-    } else {
-      this.updateTaskStatus();
-    }
 
     if (player.currentRoom) {
       player.currentRoom.removePlayer(player);
@@ -78,6 +75,7 @@ class Room {
     }
 
     player.joinedRoom(this);
+    this.updateTaskStatus();
   }
 
   removePlayer(player) {
