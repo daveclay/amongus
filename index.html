@@ -113,20 +113,14 @@
   }
 
   .player {
-    border: 1px solid gray;
-    background-color: white;
     display: inline-block;
     color: #999999;
     margin: 10px;
     padding: 4px;
-  }
-
-  .imageContainer {
-    display: inline-block;
+    font-size: 14px;
   }
 
   .playerName {
-    font-size: 18px;
   }
 
   .playerContent {
@@ -139,24 +133,31 @@
     display: none !important;
   }
 
-  .imposterHighlight {
+  .imposterHighlight .playerName {
     background-color: red;
     color: white;
+    border-radius: 10px;
+    animation-name: imposterHighlighAnimation;
+    animation-duration: 300ms;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+  }
+
+  @keyframes imposterHighlighAnimation {
+  from {background-color: #ffffff;}
+    to {background-color: #ff0000;}
   }
 
   .crewmateHighlight {
-    background-color: #e3c569;
-    color: black;
+    color: #e3c569;
   }
 
   .votingHighlight {
-    background-color: #ffbf00;
-    color: black;
+    color: #ffbf00;
   }
 
   .turnHighlight {
-    background-color: #ffe700;
-    color: black;
+    color: #1a860d;
   }
 
   .image {

@@ -95,6 +95,11 @@ class Game {
     this.bodyElement.classList.add("victory");
   }
 
+  clearBody() {
+    this.bodyElement.classList.remove("victory");
+    this.bodyElement.classList.remove("voting");
+  }
+
   enableEmergencyMeetingButton() {
     this.emergencyMeetingButton.disabled = false;
     this.emergencyMeetingButton.classList.add("enabled");
@@ -115,6 +120,7 @@ class Game {
     }
     this.currentTurnPlayer = this.players[this.currentTurnPlayerIndex];
     this.currentTurnPlayer.startPlayerTurn();
+    this.notify(`${this.currentTurnPlayer.name}'s turn`, false);
 
     setTimeout(() => {
       if (this.currentTurnPlayer.human) {
@@ -139,6 +145,10 @@ class Game {
     }, 1000);
   }
 
+  getImposter() {
+    return this.players.find(player => player.imposter);
+  }
+
   currentPlayerPerformsTask(callback) {
     setTimeout(() => {
       this.currentTurnPlayer.performTask();
@@ -146,7 +156,9 @@ class Game {
         this.currentTurnPlayer.currentRoom.showTaskStatus();
       }
       if (this.isAllTasksCompleted()) {
-        this.victory("All tasks completed!");
+        let imposter = this.getImposter();
+        imposter.setStatus(imposterStatus);
+        this.victory(`All tasks completed! ${imposter.name} was the imposter!`);
         return;
       }
       callback();
@@ -210,6 +222,7 @@ class Game {
    **********************************/
   resetGame() {
     this.clearNotify();
+    this.clearBody();
     this.currentVotingPlayerIndex = -1;
     this.currentTurnPlayerIndex = -1;
     this.resetPlayers();
@@ -234,6 +247,7 @@ class Game {
    **********************************/
 
   startVotePhase() {
+    this.clearNotify();
     this.currentVotingPlayerIndex = -1;
     this.cancelRoomSelection();
     this.nextVoteTurn();
@@ -241,6 +255,7 @@ class Game {
 
   endVotePhase() {
     this.bodyElement.classList.remove("voting");
+    this.clearNotify();
     this.hideAllVoteButtons();
     this.tallyVotes();
   }
@@ -288,6 +303,7 @@ class Game {
     if (this.currentVotingPlayerIndex === this.players.length) {
       this.endVotePhase();
     } else {
+      this.notify(`${this.currentTurnPlayer.name}'s turn to vote`, false);
       if  (this.currentVotingPlayer.human) {
         this.showVoteButtons();
         this.currentVotingPlayer.startVoteTurn();

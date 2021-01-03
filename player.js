@@ -5,12 +5,12 @@ class PlayerStatus {
   }
 
   apply(player) {
-    player.statusElement.innerHTML = this.textCallback(player);
+    player.nameElement.innerHTML = this.textCallback(player);
     player.playerElement.classList.add(this.styleClass);
   }
 
   unapply(player) {
-    player.statusElement.innerHTML = "";
+    player.nameElement.innerHTML = player.name;
     player.playerElement.classList.remove(this.styleClass);
   }
 }
@@ -44,9 +44,6 @@ class Player {
   createPlayerImage() {
     this.imageElement = document.getElementById(this.image + "Image");
     this.playerElement.getElementsByClassName("imageContainer")[0].appendChild(this.imageElement);
-    this.imageElement.addEventListener("click", () => {
-      this.show();
-    });
   }
 
   createVoteButton() {
@@ -59,15 +56,15 @@ class Player {
     this.skipButton.addEventListener("click", () => this.handleSkipClicked());
   }
 
-  createStatusElement() {
-    this.statusElement = this.playerElement.getElementsByClassName("status")[0];
+  createNameElement() {
+    this.nameElement = this.playerElement.getElementsByClassName("playerName")[0];
   }
 
   setPlayerElement(playerElement) {
     this.playerElement = playerElement;
     this.playerElement.getElementsByClassName("playerName")[0].innerHTML = this.name;
     this.createPlayerImage();
-    this.createStatusElement();
+    this.createNameElement();
     this.createVoteButton();
     this.createSkipButton();
   };
