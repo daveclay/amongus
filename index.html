@@ -17,6 +17,19 @@
     to {background-color: #2d0000;}
   }
 
+  body.victory {
+    animation-name: victory;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+  }
+
+  @keyframes victory {
+    0% {background-color: #00adbd;}
+    50% {background-color: #00ff8f;}
+    100% {background-color: #f1b3ff;}
+  }
+
   #notify {
     background-color: yellow;
     margin: 10px;

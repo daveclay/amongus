@@ -117,12 +117,13 @@ class Player {
     }, 5000);
   };
 
-  onVotedAsImposter(callback) {
+  onVoted(callback) {
     this.votedCallback = callback;
   }
 
   showVoteButton() {
     this.voteButton.classList.remove("hidden");
+    this.hideSkipButton();
   }
 
   hideVoteButton() {
@@ -131,6 +132,7 @@ class Player {
 
   showSkipButton() {
     this.skipButton.classList.remove("hidden");
+    this.hideVoteButton();
   }
 
   hideSkipButton() {
@@ -144,7 +146,9 @@ class Player {
 
   startVoteTurn() {
     this.setStatus(votingStatus);
-    this.showSkipButton();
+    if (this.human) {
+      this.showSkipButton();
+    }
   }
 
   startPlayerTurn() {

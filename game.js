@@ -11,6 +11,7 @@ class Game {
     this.emergencyMeetingButton = document.getElementById("emergencyMeetingButton");
     this.notifyElement = document.getElementById("notify");
     this.roomsElement = document.getElementById("rooms");
+    this.bodyElement = document.getElementsByTagName("body")[0]
 
     this.rooms = [
       new Room("Cafeteria", "Fix wiring"),
@@ -35,8 +36,9 @@ class Game {
     const addPlayer = (name, playerCreated) => {
       let player = new Player();
       player.name = name;
-      player.onVotedAsImposter(player => {
-        this.handleVotedForPlayer(player);
+      player.onVoted(() => {
+        this.currentVotingPlayer.voteTurnDone();
+        this.nextVoteTurn();
       });
       playerCreated(player);
 
@@ -79,13 +81,18 @@ class Game {
 
     this.emergencyMeetingButton.addEventListener("click", () =>  {
       this.disableEmergencyMeetingButton();
-      document.getElementsByTagName("body")[0].classList.add("voting");
+      this.bodyElement.classList.add("voting");
       game.startVotePhase();
     });
 
     this.rooms.forEach(room => {
       this.roomsElement.appendChild(room.roomElement);
     })
+  }
+
+  victory() {
+    this.bodyElement.classList.add("victory");
+    // TODO: why?
   }
 
   enableEmergencyMeetingButton() {
@@ -223,10 +230,9 @@ class Game {
   }
 
   endVotePhase() {
+    this.bodyElement.classList.remove("voting");
     this.hideAllVoteButtons();
     this.tallyVotes();
-
-    this.players.forEach(player => player.show());
   }
 
   tallyVotes() {
@@ -241,6 +247,7 @@ class Game {
     if (mostVotedPlayer.voteCount === secondMostVotedPlayer.voteCount) {
       this.notify("No one was ejected. (Tie!)");
     } else if (mostVotedPlayer.imposter) {
+      this.victory();
       this.notify(`Victory! ${mostVotedPlayer.name} was the imposter!`);
     } else {
       this.notify(`${mostVotedPlayer.name} was NOT the imposter!`);
@@ -250,15 +257,16 @@ class Game {
   hideAllVoteButtons() {
     this.players.forEach(player => {
       player.hideVoteButton();
+      player.hideSkipButton();
     });
   }
 
-  showVoteButtonsForOtherPlayers() {
+  showVoteButtons() {
     this.players.forEach(player => {
       if (player !== this.currentVotingPlayer) {
         player.showVoteButton();
       } else {
-        player.hideVoteButton();
+        player.showSkipButton();
       }
     });
   }
@@ -268,26 +276,23 @@ class Game {
     if (this.currentVotingPlayerIndex === this.players.length) {
       this.endVotePhase();
     } else {
-      this.showVoteButtonsForOtherPlayers();
-
       if  (this.currentVotingPlayer.human) {
+        this.showVoteButtons();
         this.currentVotingPlayer.startVoteTurn();
       } else {
-        // TODO: based on rooms they've seen others in
-        let others = this.getOtherPlayers(this.currentVotingPlayer);
-        let imposterGuess = sample(others);
-        imposterGuess.voteImposter();
+        this.hideAllVoteButtons();
+        setTimeout(() => {
+          // TODO: based on rooms they've seen others in
+          let others = this.getOtherPlayers(this.currentVotingPlayer);
+          let imposterGuess = sample(others);
+          imposterGuess.voteImposter();
+        }, 1000);
       }
     }
   }
 
   getOtherPlayers(player) {
     return allExcept(this.players, player);
-  }
-
-  handleVotedForPlayer(player) {
-    this.currentVotingPlayer.voteTurnDone();
-    this.nextVoteTurn();
   }
 
   nextVotingPlayer() {
