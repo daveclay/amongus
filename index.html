@@ -5,6 +5,18 @@
     font-family: Helvetica, sans-serif;
   }
 
+  body.voting {
+    animation-name: voting;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+  }
+
+  @keyframes voting {
+    from {background-color: #bd0000;}
+    to {background-color: #2d0000;}
+  }
+
   #emergencyMeetingButton {
     border-radius: 50px;
     height: 80px;

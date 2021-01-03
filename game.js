@@ -25,11 +25,9 @@ class Game {
     this.rooms.forEach(room => {
       room.playerJoinedRoom = () => {
         if (this.cafeteria.isHumanInRoom()) {
-          this.emergencyMeetingButton.disabled = false;
-          this.emergencyMeetingButton.classList.add("enabled");
+          this.enableEmergencyMeetingButton();
         } else {
-          this.emergencyMeetingButton.disabled = true;
-          this.emergencyMeetingButton.classList.remove("enabled");
+          this.disableEmergencyMeetingButton();
         }
       }
     });
@@ -84,13 +82,24 @@ class Game {
     });
 
     this.emergencyMeetingButton.addEventListener("click", () =>  {
-      this.emergencyMeetingButton.disabled = true;
+      this.disableEmergencyMeetingButton();
+      document.getElementsByTagName("body")[0].classList.add("voting");
       game.startVotePhase();
     });
 
     this.rooms.forEach(room => {
       this.roomsElement.appendChild(room.roomElement);
     })
+  }
+
+  enableEmergencyMeetingButton() {
+    this.emergencyMeetingButton.disabled = false;
+    this.emergencyMeetingButton.classList.add("enabled");
+  }
+
+  disableEmergencyMeetingButton() {
+    this.emergencyMeetingButton.disabled = true;
+    this.emergencyMeetingButton.classList.remove("enabled");
   }
 
   nextPlayerTurn() {
