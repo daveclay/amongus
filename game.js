@@ -164,13 +164,13 @@ class Game {
     this.currentTurnPlayer.startPlayerTurn();
     this.notify(`${this.currentTurnPlayer.name}'s turn`, false);
 
+    if (this.getCurrentTurnPlayerRoomTask().isBeingPerformedBy(this.currentTurnPlayer)) {
+      this.currentTurnPlayer.finishTask();
+    }
+
     if (this.currentTurnPlayer.human) {
       if (this.currentTurnPlayer.currentRoom === this.cafeteria) {
         this.enableEmergencyMeetingButton();
-      }
-
-      if (this.getCurrentTurnPlayerRoomTask().isBeingPerformedBy(this.currentTurnPlayer)) {
-        this.currentTurnPlayer.finishTask();
       }
 
       // TODO: do this when the task is _completed_? IF there's victory, the rest of this method shouldn't run.
@@ -185,29 +185,42 @@ class Game {
 
       // Turn Option 2: Move to another Room
       this.startRoomSelection(room => {
-        room.addPlayer(this.currentTurnPlayer);
-        this.nextPlayerTurn();
+        this.moveCurrentPlayerToRoom(room);
       });
     } else {
       setTimeout(() => {
         if (this.getCurrentTurnPlayerRoomTask().isAvailable()) {
+          // Todo: if I was the last one to perform the task, don't do it again unless
+          // I know it isn't fixed and I'm not the imposter (or it isn't fixed and I _am_ the imposter)
+          // Also, only od the task if I know it should be done.
           this.currentPlayerPerformTask();
         } else {
-          let room = sample(this.rooms);
-          room.addPlayer(this.currentTurnPlayer);
-          this.nextPlayerTurn();
+          this.moveComputerPlayerToRandomRoom();
         }
       }, 1000);
     }
   }
 
-  getImposter() {
-    return this.players.find(player => player.imposter);
+  moveComputerPlayerToRandomRoom() {
+    let room = sample(this.rooms);
+    this.moveCurrentPlayerToRoom(room);
+  }
+
+  moveCurrentPlayerToRoom(room) {
+    if (this.getCurrentTurnPlayerRoom() !== room) {
+      this.getCurrentTurnPlayerRoomTask().updateDescription();
+    }
+    room.addPlayer(this.currentTurnPlayer);
+    this.nextPlayerTurn();
   }
 
   currentPlayerPerformTask() {
     this.currentTurnPlayer.startTask();
     this.nextPlayerTurn();
+  }
+
+  getImposter() {
+    return this.players.find(player => player.imposter);
   }
 
   checkAllTasksForVictory() {
