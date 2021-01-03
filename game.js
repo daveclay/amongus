@@ -24,11 +24,7 @@ class Game {
 
     this.rooms.forEach(room => {
       room.playerJoinedRoom = () => {
-        if (this.cafeteria.isHumanInRoom()) {
-          this.enableEmergencyMeetingButton();
-        } else {
-          this.disableEmergencyMeetingButton();
-        }
+        // TODO: not needed?
       }
     });
 
@@ -115,12 +111,18 @@ class Game {
 
     setTimeout(() => {
       if (this.currentTurnPlayer.human) {
+        if (this.currentTurnPlayer.currentRoom === this.cafeteria) {
+          this.enableEmergencyMeetingButton();
+        }
+
         this.startRoomSelection(() => {
+          this.disableEmergencyMeetingButton();
           this.currentPlayerPerformsTask(() => {
             this.nextPlayerTurn();
           });
         });
       } else {
+        this.disableEmergencyMeetingButton();
         let room = sample(this.rooms);
         room.addPlayer(this.currentTurnPlayer);
         this.currentPlayerPerformsTask(() => {
@@ -189,6 +191,7 @@ class Game {
    * Start/Reset Game
    **********************************/
   resetGame() {
+    this.currentVotingPlayerIndex = -1;
     this.currentTurnPlayerIndex = -1;
     this.resetPlayers();
     this.resetRooms();
@@ -213,6 +216,7 @@ class Game {
 
   startVotePhase() {
     this.currentVotingPlayerIndex = -1;
+    this.cancelRoomSelection();
     this.nextVoteTurn();
   }
 
