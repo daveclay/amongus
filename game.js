@@ -14,13 +14,17 @@ class Game {
     this.nextPlayerTurnButton = document.getElementById("nextButton");
 
     this.rooms = [
-      new Room("Reactor", "Unlock manifolds"),
       new Room("Cafeteria", "Fix wiring"),
+      new Room("Reactor", "Unlock manifolds"),
       new Room("Admin", "Swipe card"),
       new Room("Navigation", "Stabilize steering"),
       new Room("Weapons", "Destroy asteroids"),
       new Room("Engine", "Fill the fuel tank")
     ]
+    this.cafeteria = this.rooms.find(room => room.name === "Cafeteria");
+    this.cafeteria.playerJoinedRoom = () => {
+      this.emergencyMeetingButton.disabled = !this.cafeteria.isHumanInRoom();
+    }
 
     const newPlayerElement = () => {
       return newFromTemplate(this.playerTemplate);
@@ -184,9 +188,8 @@ class Game {
   };
 
   everyoneInCafeteria() {
-    let cafeteria = this.rooms.find(room => room.name === "Cafeteria");
     this.players.forEach(player => {
-      cafeteria.addPlayer(player);
+      this.cafeteria.addPlayer(player);
     });
   }
 

@@ -56,12 +56,15 @@ class Room {
     this.taskStatusElement.classList.remove("incomplete");
   }
 
+  isHumanInRoom() {
+    return this.players.find(player => player.human) != null
+  }
+
   updateTaskStatus() {
-    let humanPlayer = this.players.find(player => player.human)
-    if (humanPlayer == null) {
-      this.hideTaskStatus();
-    } else {
+    if (this.isHumanInRoom()) {
       this.showTaskStatus();
+    } else {
+      this.hideTaskStatus();
     }
   }
 
@@ -76,6 +79,9 @@ class Room {
 
     player.joinedRoom(this);
     this.updateTaskStatus();
+    if (this.playerJoinedRoom) {
+      this.playerJoinedRoom(player, this);
+    }
   }
 
   removePlayer(player) {
