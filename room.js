@@ -102,6 +102,10 @@ class Room {
     this.taskCompleted = true;
   }
 
+  isTaskCompleted() {
+    return this.taskCompleted;
+  }
+
   getRoomStatus() {
     return this.taskCompleted ? "completed" : "needs to be done!"
   }

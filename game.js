@@ -90,9 +90,9 @@ class Game {
     })
   }
 
-  victory() {
+  victory(msg) {
+    this.notify(msg, false);
     this.bodyElement.classList.add("victory");
-    // TODO: why?
   }
 
   enableEmergencyMeetingButton() {
@@ -142,11 +142,19 @@ class Game {
   currentPlayerPerformsTask(callback) {
     setTimeout(() => {
       this.currentTurnPlayer.performTask();
-      if  (this.currentTurnPlayer.human) {
+      if (this.currentTurnPlayer.human) {
         this.currentTurnPlayer.currentRoom.showTaskStatus();
+      }
+      if (this.isAllTasksCompleted()) {
+        this.victory("All tasks completed!");
+        return;
       }
       callback();
     }, 1000);
+  }
+
+  isAllTasksCompleted() {
+    return this.rooms.find(room => !room.isTaskCompleted()) == null;
   }
 
   startRoomSelection(callback) {
@@ -166,12 +174,18 @@ class Game {
     });
   }
 
-  notify(message) {
+  notify(message, clearAfterTimeout) {
     if (this.notifyTimeout) {
       clearTimeout(this.notifyTimeout);
     }
     this.notifyElement.innerHTML = message;
     this.notifyElement.classList.remove("hidden");
+    if (clearAfterTimeout) {
+      this.clearNotify();
+    }
+  }
+
+  clearNotify() {
     this.notifyTimeout = setTimeout(() => {
       this.notifyElement.innerHTML = "";
       this.notifyElement.classList.add("hidden");
@@ -191,15 +205,11 @@ class Game {
     this.rooms.forEach(room => room.reset());
   }
 
-  isAllRoomTasksCompleted() {
-    let incompleteRoom = this.rooms.find(room => !room.taskCompleted);
-    return incompleteRoom == null;
-  }
-
   /**********************************
    * Start/Reset Game
    **********************************/
   resetGame() {
+    this.clearNotify();
     this.currentVotingPlayerIndex = -1;
     this.currentTurnPlayerIndex = -1;
     this.resetPlayers();
@@ -247,9 +257,7 @@ class Game {
     if (mostVotedPlayer.voteCount === secondMostVotedPlayer.voteCount) {
       this.notify("No one was ejected. (Tie!)");
     } else if (mostVotedPlayer.imposter) {
-      this.notify(`Victory! ${mostVotedPlayer.name} was the imposter!`);
-      this.victory();
-
+      this.victory(`Victory! ${mostVotedPlayer.name} was the imposter!`, false);
       return;
     } else {
       this.notify(`${mostVotedPlayer.name} was NOT the imposter!`);
