@@ -33,9 +33,17 @@ class Task {
     }
   }
 
+  showPerformingTask() {
+    this.updateDescription();
+  }
+
   showCompletionStatus() {
     this.hideCompletionStatus();
-    this.descriptionElement.innerHTML = `${this.description} ${this.getCompletionStatus()}`
+    if (this.player) {
+      this.descriptionElement.innerHTML = `${this.player.name} ${this.getCompletionStatus()} ${this.description}`;
+    } else {
+      this.descriptionElement.innerHTML = `${this.description} ${this.getCompletionStatus()}`
+    }
     if (this.completed) {
       this.statusElement.classList.add("completed");
     } else {
@@ -44,13 +52,12 @@ class Task {
   }
 
   hideCompletionStatus() {
-    this.updateDescription();
     this.statusElement.classList.remove("completed");
     this.statusElement.classList.remove("incomplete");
   }
 
   getCompletionStatus() {
-    return this.completed ? "completed" : "needs to be done!"
+    return this.completed ? "completed" : "did not complete"
   }
 
   enableTaskSelection(taskWasSelectedCallback) {
@@ -65,7 +72,6 @@ class Task {
 
   setPlayer(player) {
     this.player = player;
-    this.updateDescription();
   }
 
   sabotage() {
@@ -78,7 +84,6 @@ class Task {
 
   makeAvailable() {
     this.player = null;
-    this.updateDescription();
   }
 
   isAvailable() {
@@ -95,5 +100,8 @@ class Task {
 
   reset() {
     this.completed = false;
+    this.player = null;
+    this.hideCompletionStatus();
+    this.updateDescription();
   }
 }

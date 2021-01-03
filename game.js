@@ -269,6 +269,10 @@ class Game {
     this.rooms.forEach(room => room.reset());
   }
 
+  resetTasks() {
+    this.tasks.forEach(task => task.reset());
+  }
+
   /**********************************
    * Start/Reset Game
    **********************************/
@@ -278,6 +282,7 @@ class Game {
     this.currentVotingPlayerIndex = -1;
     this.currentTurnPlayerIndex = -1;
     this.resetPlayers();
+    this.resetTasks();
     this.resetRooms();
     this.pickImposter();
     this.everyoneInCafeteria();

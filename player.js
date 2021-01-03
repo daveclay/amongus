@@ -183,6 +183,7 @@ class Player {
     }
 
     task.setPlayer(this);
+    task.showPerformingTask();
   }
 
   finishTask() {
@@ -195,6 +196,7 @@ class Player {
       task.fix();
     }
 
+    task.showCompletionStatus();
     task.makeAvailable();
   }
 }
