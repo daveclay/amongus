@@ -164,8 +164,10 @@ class Game {
       clearTimeout(this.notifyTimeout);
     }
     this.notifyElement.innerHTML = message;
+    this.notifyElement.classList.remove("hidden");
     this.notifyTimeout = setTimeout(() => {
       this.notifyElement.innerHTML = "";
+      this.notifyElement.classList.add("hidden");
     }, 5000);
   }
 
@@ -267,8 +269,20 @@ class Game {
       this.endVotePhase();
     } else {
       this.showVoteButtonsForOtherPlayers();
-      this.currentVotingPlayer.startVoteTurn();
+
+      if  (this.currentVotingPlayer.human) {
+        this.currentVotingPlayer.startVoteTurn();
+      } else {
+        // TODO: based on rooms they've seen others in
+        let others = this.getOtherPlayers(this.currentVotingPlayer);
+        let imposterGuess = sample(others);
+        imposterGuess.voteImposter();
+      }
     }
+  }
+
+  getOtherPlayers(player) {
+    return allExcept(this.players, player);
   }
 
   handleVotedForPlayer(player) {

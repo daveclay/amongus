@@ -25,6 +25,13 @@ const sample = (array) => {
   return array[randomIndex(array)];
 }
 
+const copyArray = (array) => [...array];
+
+const allExcept = (array, item) => {
+  let copy = copyArray(array);
+  return copy.splice(copy.indexOf(item), 1);
+}
+
 const pluckRandom = (array) => {
   return array.splice(randomIndex(array), 1);
 }

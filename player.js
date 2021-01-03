@@ -51,7 +51,7 @@ class Player {
 
   createVoteButton() {
     this.voteButton = this.playerElement.getElementsByClassName("voteButton")[0];
-    this.voteButton.addEventListener("click", () => this.handleVoteClicked());
+    this.voteButton.addEventListener("click", () => this.voteImposter());
   }
 
   createSkipButton() {
@@ -72,17 +72,13 @@ class Player {
     this.createSkipButton();
   };
 
-  handleVoteClicked() {
-    this.tallyVoteAsImposter();
+  voteImposter() {
+    this.voteCount += 1;
     this.votedCallback(this);
   }
 
   handleSkipClicked() {
     this.votedCallback(this);
-  }
-
-  tallyVoteAsImposter() {
-    this.voteCount += 1;
   }
 
   setStatus(status) {
