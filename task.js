@@ -25,9 +25,17 @@ class Task {
     this.descriptionElement.innerHTML = this.description;
   }
 
-  showStatus() {
-    this.hideStatus();
-    this.taskElement.innerHTML = `${this.description} ${this.getStatus()}`
+  updateDescription() {
+    if (this.player) {
+      this.descriptionElement.innerHTML = `${this.player.name} is performing ${this.description}`;
+    } else {
+      this.descriptionElement.innerHTML = this.description;
+    }
+  }
+
+  showCompletionStatus() {
+    this.hideCompletionStatus();
+    this.descriptionElement.innerHTML = `${this.description} ${this.getCompletionStatus()}`
     if (this.completed) {
       this.statusElement.classList.add("completed");
     } else {
@@ -35,13 +43,13 @@ class Task {
     }
   }
 
-  hideStatus() {
-    this.taskElement.innerHTML = "";
+  hideCompletionStatus() {
+    this.updateDescription();
     this.statusElement.classList.remove("completed");
     this.statusElement.classList.remove("incomplete");
   }
 
-  getStatus() {
+  getCompletionStatus() {
     return this.completed ? "completed" : "needs to be done!"
   }
 
@@ -57,6 +65,7 @@ class Task {
 
   setPlayer(player) {
     this.player = player;
+    this.updateDescription();
   }
 
   sabotage() {
@@ -69,6 +78,7 @@ class Task {
 
   makeAvailable() {
     this.player = null;
+    this.updateDescription();
   }
 
   isAvailable() {
