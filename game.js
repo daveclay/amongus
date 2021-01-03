@@ -42,11 +42,19 @@ class Game {
       this.addPlayer(player);
     };
 
-    this.addHumanPlayerButton.addEventListener("click", () => {
+    const addHumanPlayer = () => {
       addPlayer(this.playerNameField.value, player => {
         this.playerNameField.value = "";
       });
+    };
+
+    this.playerNameField.addEventListener("keyup", (event) => {
+      if ("Enter" === event.code) {
+        addHumanPlayer();
+      }
     });
+
+    this.addHumanPlayerButton.addEventListener("click", () => addHumanPlayer());
 
     this.addComputerPlayerButton.addEventListener("click", () => {
       if (availableComputerPlayers.length === 0) {
