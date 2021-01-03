@@ -12,7 +12,6 @@ class Game {
     this.notifyElement = document.getElementById("notify");
     this.roomsElement = document.getElementById("rooms");
     this.nextPlayerTurnButton = document.getElementById("nextButton");
-    this.currentTurnPlayerIndex = -1;
 
     this.rooms = [
       new Room("Reactor", "Unlock manifolds"),
@@ -171,6 +170,7 @@ class Game {
    * Start/Reset Game
    **********************************/
   resetGame() {
+    this.currentTurnPlayerIndex = -1;
     this.resetPlayers();
     this.resetRooms();
     this.pickImposter();

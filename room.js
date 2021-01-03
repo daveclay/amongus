@@ -104,5 +104,6 @@ class Room {
 
   reset() {
     this.taskCompleted = false;
+    this.updateTaskStatus();
   }
 }
