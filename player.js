@@ -170,18 +170,31 @@ class Player {
     this.currentRoom = room;
   }
 
-  performTask() {
+  startTask() {
     if (this.currentRoom == null) {
       alert(`${this.name} is not in a room! That's a bug, daddy!`);
       return;
     }
 
+    let task = this.currentRoom.task;
+    if (!task.isAvailable()) {
+      alert(`${task.description} is not available! That's a bug, daddy!`);
+      return;
+    }
+
+    task.setPlayer(this);
+  }
+
+  finishTask() {
+    let task = this.currentRoom.task;
     if (this.imposter) {
         if (this.currentRoom.isOnlyPersonInTheRoom(this)) {
-          this.currentRoom.sabotageTask();
+          task.sabotage();
         }
     } else {
-      this.currentRoom.fixTask();
+      task.fix();
     }
+
+    task.makeAvailable();
   }
 }

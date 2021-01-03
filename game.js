@@ -13,15 +13,36 @@ class Game {
     this.roomsElement = document.getElementById("rooms");
     this.bodyElement = document.getElementsByTagName("body")[0]
 
+    let fixWiring = new Task("Fix wiring");
+    let unlockManifolds = new Task("Unlock manifolds");
+    let swipeCard = new Task("Swipe card");
+    let stabilizeSteering = new Task("Stabilize steering");
+    let destroyAsteroids = new Task("Destroy asteroids");
+    let fillFuel = new Task("Fill the fuel tank");
+    this.tasks = [
+        fixWiring,
+        unlockManifolds,
+        swipeCard,
+        stabilizeSteering,
+        destroyAsteroids,
+        fillFuel
+    ];
+
+    this.cafeteria = new Room("Cafeteria", fixWiring);
+    let reactor = new Room("Reactor", unlockManifolds);
+    let admin = new Room("Admin", swipeCard);
+    let navigation = new Room("Navigation", stabilizeSteering);
+    let weapons = new Room("Weapons", destroyAsteroids);
+    let engine = new Room("Engine", fillFuel);
+
     this.rooms = [
-      new Room("Cafeteria", "Fix wiring"),
-      new Room("Reactor", "Unlock manifolds"),
-      new Room("Admin", "Swipe card"),
-      new Room("Navigation", "Stabilize steering"),
-      new Room("Weapons", "Destroy asteroids"),
-      new Room("Engine", "Fill the fuel tank")
-    ]
-    this.cafeteria = this.rooms.find(room => room.name === "Cafeteria");
+        this.cafeteria,
+        reactor,
+        admin,
+        navigation,
+        weapons,
+        engine
+    ];
 
     this.rooms.forEach(room => {
       room.playerJoinedRoom = () => {
@@ -110,9 +131,30 @@ class Game {
     this.emergencyMeetingButton.classList.remove("enabled");
   }
 
+  getCurrentTurnPlayerRoom() {
+    return this.currentTurnPlayer.currentRoom;
+  }
+
+  getCurrentTurnPlayerRoomTask() {
+    return this.getCurrentTurnPlayerRoom().task;
+  }
+
+  cancelTaskSelection() {
+    this.tasks.forEach(task => {
+      task.cancelTaskSelection();
+    });
+  }
+
+  cancelCurrentPlayerSelections() {
+    this.disableEmergencyMeetingButton();
+    this.cancelTaskSelection();
+    this.cancelRoomSelection();
+  }
+
   nextPlayerTurn() {
     if (this.currentTurnPlayer) {
       this.currentTurnPlayer.playerTurnDone();
+      this.cancelCurrentPlayerSelections();
     }
     this.currentTurnPlayerIndex += 1;
     if (this.currentTurnPlayerIndex === this.players.length) {
@@ -122,60 +164,70 @@ class Game {
     this.currentTurnPlayer.startPlayerTurn();
     this.notify(`${this.currentTurnPlayer.name}'s turn`, false);
 
-    setTimeout(() => {
-      if (this.currentTurnPlayer.human) {
-        if (this.currentTurnPlayer.currentRoom === this.cafeteria) {
-          this.enableEmergencyMeetingButton();
-        }
-
-        this.startRoomSelection(() => {
-          this.disableEmergencyMeetingButton();
-          this.currentPlayerPerformsTask(() => {
-            this.nextPlayerTurn();
-          });
-        });
-      } else {
-        this.disableEmergencyMeetingButton();
-        let room = sample(this.rooms);
-        room.addPlayer(this.currentTurnPlayer);
-        this.currentPlayerPerformsTask(() => {
-          this.nextPlayerTurn();
-        })
+    if (this.currentTurnPlayer.human) {
+      if (this.currentTurnPlayer.currentRoom === this.cafeteria) {
+        this.enableEmergencyMeetingButton();
       }
-    }, 1000);
+
+      if (this.getCurrentTurnPlayerRoomTask().isBeingPerformedBy(this.currentTurnPlayer)) {
+        this.currentTurnPlayer.finishTask();
+      }
+
+      // TODO: do this when the task is _completed_? IF there's victory, the rest of this method shouldn't run.
+      this.checkAllTasksForVictory();
+
+      // Turn Option 1: Perform Task if it's available
+      if (this.getCurrentTurnPlayerRoomTask().isAvailable()) {
+        this.getCurrentTurnPlayerRoomTask().enableTaskSelection(() => {
+          this.currentPlayerPerformTask();
+        });
+      }
+
+      // Turn Option 2: Move to another Room
+      this.startRoomSelection(room => {
+        room.addPlayer(this.currentTurnPlayer);
+        this.nextPlayerTurn();
+      });
+    } else {
+      setTimeout(() => {
+        if (this.getCurrentTurnPlayerRoomTask().isAvailable()) {
+          this.currentPlayerPerformTask();
+        } else {
+          let room = sample(this.rooms);
+          room.addPlayer(this.currentTurnPlayer);
+          this.nextPlayerTurn();
+        }
+      }, 1000);
+    }
   }
 
   getImposter() {
     return this.players.find(player => player.imposter);
   }
 
-  currentPlayerPerformsTask(callback) {
-    setTimeout(() => {
-      this.currentTurnPlayer.performTask();
-      if (this.currentTurnPlayer.human) {
-        this.currentTurnPlayer.currentRoom.showTaskStatus();
-      }
-      if (this.isAllTasksCompleted()) {
-        let imposter = this.getImposter();
-        imposter.setStatus(imposterStatus);
-        this.victory(`All tasks completed! ${imposter.name} was the imposter!`);
-        return;
-      }
-      callback();
-    }, 1000);
+  currentPlayerPerformTask() {
+    this.currentTurnPlayer.startTask();
+    this.nextPlayerTurn();
+  }
+
+  checkAllTasksForVictory() {
+    if (this.isAllTasksCompleted()) {
+      let imposter = this.getImposter();
+      imposter.setStatus(imposterStatus);
+      this.victory(`All tasks completed! ${imposter.name} was the imposter!`);
+    } else {
+      // TODO: what's the imposter's goal?
+    }
   }
 
   isAllTasksCompleted() {
-    return this.rooms.find(room => !room.isTaskCompleted()) == null;
+    return this.tasks.find(task => !task.isTaskCompleted()) == null;
   }
 
-  startRoomSelection(callback) {
+  startRoomSelection(roomWasSelectedCallback) {
     this.rooms.forEach(room => {
       room.onRoomSelected = (room) => {
-        this.currentTurnPlayer.currentRoom.hideTaskStatus();
-        room.addPlayer(this.currentTurnPlayer);
-        this.cancelRoomSelection();
-        callback();
+        roomWasSelectedCallback(room);
       }
     });
   }

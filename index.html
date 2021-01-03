@@ -95,6 +95,22 @@
     display: inline-block;
   }
 
+  .task.selectable {
+    border: 1px solid yellowgreen;
+    background: greenyellow;
+    padding: 10px;
+    border-radius: 10px;
+    animation-name: taskSelectableAnimation;
+    animation-duration: 280ms;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+  }
+
+  @keyframes taskSelectableAnimation {
+    from {background-color: #2bff02;}
+    to {background-color: #ffffff;}
+  }
+
   .taskStatus {
     display: inline-block;
     background-size: 20px;
@@ -144,7 +160,7 @@
   }
 
   @keyframes imposterHighlighAnimation {
-  from {background-color: #ffffff;}
+    from {background-color: #ffffff;}
     to {background-color: #ff0000;}
   }
 
@@ -185,11 +201,13 @@
 
 <div class="hidden room" id="roomTemplate">
   <div class="roomName"></div>
-  <div>
-    <div class="taskStatus"></div>
-    <div class="task"></div>
-  </div>
+  <div class="taskContainer"></div>
   <div class="players"></div>
+</div>
+
+<div class="hidden task" id="taskTemplate">
+  <div class="description"></div>
+  <div class="status"></div>
 </div>
 
 <div class="hidden player" id="playerTemplate">
@@ -217,6 +235,7 @@
   <img class="image" id="whiteImage" src="character-images/white.png"/>
 </div>
 
+<script type="text/javascript" src="task.js"></script>
 <script type="text/javascript" src="room.js"></script>
 <script type="text/javascript" src="player.js"></script>
 <script type="text/javascript" src="game.js"></script>
