@@ -144,8 +144,12 @@ class Player {
     this.hideSkipButton();
   }
 
-  startVoteTurn() {
+  showVotingStatus() {
     this.setStatus(votingStatus);
+  }
+
+  startVoteTurn() {
+    this.showVotingStatus();
     if (this.human) {
       this.showSkipButton();
     }

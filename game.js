@@ -247,11 +247,15 @@ class Game {
     if (mostVotedPlayer.voteCount === secondMostVotedPlayer.voteCount) {
       this.notify("No one was ejected. (Tie!)");
     } else if (mostVotedPlayer.imposter) {
-      this.victory();
       this.notify(`Victory! ${mostVotedPlayer.name} was the imposter!`);
+      this.victory();
+
+      return;
     } else {
       this.notify(`${mostVotedPlayer.name} was NOT the imposter!`);
     }
+
+    this.nextPlayerTurn();
   }
 
   hideAllVoteButtons() {
@@ -281,6 +285,8 @@ class Game {
         this.currentVotingPlayer.startVoteTurn();
       } else {
         this.hideAllVoteButtons();
+
+        this.currentVotingPlayer.showVotingStatus();
         setTimeout(() => {
           // TODO: based on rooms they've seen others in
           let others = this.getOtherPlayers(this.currentVotingPlayer);
