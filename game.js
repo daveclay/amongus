@@ -11,7 +11,6 @@ class Game {
     this.emergencyMeetingButton = document.getElementById("emergencyMeetingButton");
     this.notifyElement = document.getElementById("notify");
     this.roomsElement = document.getElementById("rooms");
-    this.nextPlayerTurnButton = document.getElementById("nextButton");
 
     this.rooms = [
       new Room("Cafeteria", "Fix wiring"),
@@ -22,9 +21,18 @@ class Game {
       new Room("Engine", "Fill the fuel tank")
     ]
     this.cafeteria = this.rooms.find(room => room.name === "Cafeteria");
-    this.cafeteria.playerJoinedRoom = () => {
-      this.emergencyMeetingButton.disabled = !this.cafeteria.isHumanInRoom();
-    }
+
+    this.rooms.forEach(room => {
+      room.playerJoinedRoom = () => {
+        if (this.cafeteria.isHumanInRoom()) {
+          this.emergencyMeetingButton.disabled = false;
+          this.emergencyMeetingButton.classList.add("enabled");
+        } else {
+          this.emergencyMeetingButton.disabled = true;
+          this.emergencyMeetingButton.classList.remove("enabled");
+        }
+      }
+    });
 
     const newPlayerElement = () => {
       return newFromTemplate(this.playerTemplate);
@@ -70,6 +78,7 @@ class Game {
     });
 
     this.startButton.addEventListener("click", () => {
+      this.startButton.innerHTML = "New Game";
       this.resetGame();
       this.nextPlayerTurn();
     });
@@ -78,10 +87,6 @@ class Game {
       this.emergencyMeetingButton.disabled = true;
       game.startVotePhase();
     });
-
-    this.nextPlayerTurnButton.addEventListener("click", () => {
-      this.nextPlayerTurn();
-    })
 
     this.rooms.forEach(room => {
       this.roomsElement.appendChild(room.roomElement);
