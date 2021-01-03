@@ -67,6 +67,7 @@ class Game {
 
     this.startButton.addEventListener("click", () => {
       this.resetGame();
+      this.nextPlayerTurn();
     });
 
     this.emergencyMeetingButton.addEventListener("click", () =>  {
