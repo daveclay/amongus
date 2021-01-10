@@ -17,7 +17,7 @@ const Header = ({
   <div className="header">
     <div className="title">AMONG US</div>
     <div className="gameControls">
-      <div className="addHumanPlayer">
+      <div className="addPlayer">
         <input id="playerName" placeholder="Player Name"
                value={addPlayerForm.name}
                onKeyUp={e => {
@@ -29,8 +29,8 @@ const Header = ({
                  updatePlayerName(e.target.value);
                }}/>
         <button id="addHumanPlayer" onClick={() => addHumanPlayer()}>Add Human Player</button>
+        <button id="addComputerPlayer" onClick={() => addComputerPlayer()}>Add Computer Player</button>
       </div>
-      <button id="addComputerPlayer" onClick={() => addComputerPlayer()}>Add Computer Player</button>
       |
       <button id="startButton" onClick={() => startGame()}>Start!</button>
     </div>

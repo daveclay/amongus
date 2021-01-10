@@ -16,6 +16,26 @@ body.voting {
   to {background-color: #2d0000;}
 }
 
+.addPlayer {
+  display: inline-block;
+  margin-left: 30px;
+  margin-right: 30px;
+}
+
+.addPlayer button {
+  border: 1px solid grey;
+  background-color: honeydew;
+  padding: 4px;
+  margin: 4px;
+  border-radius: 6px;
+}
+
+#startButton {
+  border-radius: 10px;
+  background-color: #60ff00;
+  padding: 6px;
+}
+
 #notify {
   margin: 10px;
   padding: 4px;
