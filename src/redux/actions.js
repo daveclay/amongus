@@ -98,13 +98,6 @@ export const allTasksCompleted = () => ({
  * Helpers/Shared Actions
  ************************************************/
 const dispatchNextTurn = (dispatch, getState) => {
-
-  function Promise(callback) {
-    this.then = function(then) {
-      callback(then)
-    }
-  }
-
   const continueGamePromise = new Promise(continueGame => {
     if (isEmergencyMeetingFinished(getState())) {
       const voteResults = getEmergencyMeetingVoteResults(getState())
@@ -132,9 +125,6 @@ const dispatchNextTurn = (dispatch, getState) => {
     dispatch(nextPlayerTurn())
     const state = getState()
     const player = getCurrentTurnPlayer(state)
-
-    console.log("XXX", player)
-
     if (!player.human && state.computerPlayersEnabled) {
       doComputerPlayer(dispatch, getState)
     }

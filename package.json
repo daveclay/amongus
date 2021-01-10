@@ -1,6 +1,6 @@
 {
   "name": "my-app",
-  "homepage": "http://aftxr.com/amongus/",
+  "homepage": ".",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -21,9 +21,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build && rm -rf docs && mv build docs",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -b main -d build"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
