@@ -1,12 +1,22 @@
 import React from "react";
 import { connect } from "react-redux";
 import {
-  isCurrentTurnPlayer,
+  isCurrentTurnPlayer, isImposter,
 } from "../selectors/selectors"
 import {
   skipVote,
   voteImposter
 } from "../redux/actions";
+
+const getPlayerClassName = (isImposter, isCurrentTurn, celebrate) => {
+  if (isImposter && celebrate) {
+    return "playerEjected"
+  } else if (isCurrentTurn || celebrate) {
+    return "turnHighlight"
+  } else {
+    return ""
+  }
+}
 
 const Player = ({
   celebrate,
@@ -14,9 +24,10 @@ const Player = ({
   isCurrentTurn,
   votingEnabled,
   skipVote,
-  voteImposter
+  voteImposter,
+  isImposter
 }) => (
-    <div className={`player ${isCurrentTurn || celebrate ? "turnHighlight" : ""}`}>
+    <div className={`player ${getPlayerClassName(isImposter, isCurrentTurn, celebrate)}`}>
       <div>
         <div className="imageContainer">
           <img src={`character-images/${player.image}.png`}/>
@@ -49,7 +60,8 @@ const mapStateToProps = (state, ownProps) => ({
   ...ownProps,
   celebrate: state.gameOver,
   isCurrentTurn: isCurrentTurnPlayer(state, ownProps.player),
-  votingEnabled: state.emergencyMeetingStarted
+  votingEnabled: state.emergencyMeetingStarted,
+  isImposter: isImposter(state, ownProps.player)
 })
 
 export default connect(mapStateToProps, {
