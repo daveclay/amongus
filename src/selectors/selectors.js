@@ -52,6 +52,7 @@ export const isCurrentTurnPlayerAbleToSelectTask = (state, task) => {
   let room = getRoomForTask(state, task)
   return isCurrentTurnPlayerInRoom(state, room) &&
       task.playerName == null &&
+      !state.gameOver &&
       !state.emergencyMeetingStarted &&
       !task.completed &&
       getCurrentTurnPlayer(state).human

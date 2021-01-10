@@ -1,6 +1,6 @@
 import {
   getCurrentTurnPlayer,
-  getEmergencyMeetingVoteResults,
+  getEmergencyMeetingVoteResults, getPlayerByName,
   getRoomForPlayer,
   getTaskForRoom,
   isAllTasksComplete,
@@ -16,12 +16,19 @@ export const updatePlayerName = (name) => ({
   name: name
 })
 
-export const addHumanPlayer = () => ({
-  type: 'addHumanPlayer',
-  player: {
-    human: true
+export const addHumanPlayer = () => (dispatch, getState) => {
+  const state = getState()
+  if (getPlayerByName(state.players, state.addPlayerForm.name) != null) {
+    alert(`There's already a player named ${state.addPlayerForm.name}`)
+  } else {
+    dispatch({
+      type: 'addHumanPlayer',
+      player: {
+        human: true
+      }
+    })
   }
-})
+}
 
 export const addComputerPlayer = () => ({
   type: 'addComputerPlayer',
