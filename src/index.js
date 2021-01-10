@@ -5,7 +5,6 @@ import { Provider } from 'react-redux'
 import store from './redux/store'
 import App from './components/App'
 
-import {} from "./tests"
 import {
   addComputerPlayer,
   addHumanPlayer, enableComputerPlayers, onEmergencyMeetingSelected,

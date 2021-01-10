@@ -98,6 +98,13 @@ export const allTasksCompleted = () => ({
  * Helpers/Shared Actions
  ************************************************/
 const dispatchNextTurn = (dispatch, getState) => {
+
+  function Promise(callback) {
+    this.then = function(then) {
+      callback(then)
+    }
+  }
+
   const continueGamePromise = new Promise(continueGame => {
     if (isEmergencyMeetingFinished(getState())) {
       const voteResults = getEmergencyMeetingVoteResults(getState())
@@ -123,8 +130,11 @@ const dispatchNextTurn = (dispatch, getState) => {
 
   continueGamePromise.then(() => {
     dispatch(nextPlayerTurn())
-    let state = getState()
-    let player = getCurrentTurnPlayer(state)
+    const state = getState()
+    const player = getCurrentTurnPlayer(state)
+
+    console.log("XXX", player)
+
     if (!player.human && state.computerPlayersEnabled) {
       doComputerPlayer(dispatch, getState)
     }
@@ -133,7 +143,7 @@ const dispatchNextTurn = (dispatch, getState) => {
 
 const doComputerPlayer = (dispatch, getState) => {
   setTimeout(() => {
-    let action = ArrayUtils.sample(getAvailableComputerActions(getState))
+    const action = ArrayUtils.sample(getAvailableComputerActions(getState))
     dispatch(action)
   }, 200)
 }
@@ -158,16 +168,16 @@ const computerPlayerVote = (dispatch, getState) => {
 }
 
 const moveToRandomRoom = (dispatch, getState) => {
-  let state = getState()
-  let randomRoom = ArrayUtils.sample(state.rooms)
+  const state = getState()
+  const randomRoom = ArrayUtils.sample(state.rooms)
   dispatch(onRoomSelected(randomRoom.name))
 }
 
 const performCurrentRoomTask = (dispatch, getState) => {
-  let state = getState()
-  let currentPlayer = getCurrentTurnPlayer(state)
-  let room = getRoomForPlayer(state, currentPlayer)
-  let task = getTaskForRoom(state, room)
+  const state = getState()
+  const currentPlayer = getCurrentTurnPlayer(state)
+  const room = getRoomForPlayer(state, currentPlayer)
+  const task = getTaskForRoom(state, room)
   dispatch(onTaskSelected(task.id))
 }
 
